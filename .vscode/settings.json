@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cmd /c \"cd /d c:\\\\Projects\\\\lepnina-site && node -e \"const fs=require\\('fs'\\); const p='app\\\\\\\\data\\\\\\\\works\\.ts'; console\\.log\\('exists', fs\\.existsSync\\(p\\)\\); console\\.log\\('stat', fs\\.statSync\\(p\\)\\); console\\.log\\('---'\\); console\\.log\\(fs\\.readFileSync\\(p,'utf8'\\)\\);\" && npx tsc --noEmit --pretty false\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
