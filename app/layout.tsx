@@ -1,6 +1,6 @@
 import './globals.css';
 import { Cinzel, Inter } from 'next/font/google';
-import Navbar from './components/Navbar'; // <--- Импортируем Navbar
+import Navbar from './components/Navbar';
 
 const cinzel = Cinzel({ 
   subsets: ['latin'],
@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${cinzel.variable} ${inter.variable}`}>
+    <html lang="ru" className={`${cinzel.variable} ${inter.variable} scroll-smooth`}>
       <body className="antialiased bg-[#f3efe8] text-[#2c2a28] min-h-screen flex flex-col">
-        <Navbar /> {/* <--- Добавляем меню сверху */}
+        <Navbar />
         <main className="flex-grow">
           {children}
         </main>
