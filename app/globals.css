@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "aos/dist/aos.css";
 
 :root {
   --background: #f3efe8; /* Цвет античного мрамора */
