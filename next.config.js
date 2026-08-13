@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone', // Важно для правильной сборки на Vercel
-  // Если у тебя были проблемы с редиректами, можно их убрать или оставить:
+  // output: 'standalone',  <-- Закомментируй или удали эту строку!
   async redirects() {
     return [
       {
