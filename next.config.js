@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone',  <-- Закомментируй или удали эту строку!
   async redirects() {
     return [
       {
-        source: '/:path*',
+        // Регулярное выражение: всё, кроме пустой строки (то есть, кроме главной страницы)
+        source: '/:path((?!$).*)',
         destination: '/',
         permanent: true,
       },
