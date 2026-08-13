@@ -32,31 +32,6 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-24 pb-24">
       
-      {/* ================= БЛОК 1: ГЛАВНАЯ + КАЛЬКУЛЯТОР ================= */}
-      <section id="calculator" className="min-h-screen flex items-center justify-center py-16 px-4 relative">
-        <div className="absolute inset-0 pointer-events-none opacity-30"
-             style={{ backgroundImage: `repeating-linear-gradient(45deg, #d6cfc4 0px, #d6cfc4 2px, transparent 2px, transparent 8px)`, backgroundSize: '20px 20px' }}>
-        </div>
-
-        <div className="relative z-10 max-w-5xl w-full flex flex-col md:flex-row items-center justify-center gap-12">
-          <div className="hidden md:block w-16 h-96 bg-gradient-to-r from-[#e8e4de] to-[#d6cfc4] border-l-4 border-r-4 border-[#b38b5d]/30 shadow-lg rounded-sm"></div>
-
-          <div className="flex-1 w-full">
-            <div className="text-center mb-10">
-              <div className="inline-block mb-2 bg-[#e8e4de] px-6 py-2 rounded-sm border border-[#b38b5d]/30 text-xs uppercase tracking-[0.3em] text-[#b38b5d] font-cinzel">ΕΛΛΑΣ (Эллада)</div>
-              <h1 className="font-cinzel text-5xl md:text-6xl text-[#2c2a28] font-bold leading-tight">
-                Античная <br /><span className="text-[#b38b5d]">лепнина</span>
-              </h1>
-              <p className="text-lg text-[#5a5249] font-inter mt-4 max-w-lg mx-auto leading-relaxed">
-                Воссоздаем величие древних храмов. 15 лет опыта, индивидуальные проекты, выезд на замер.
-              </p>
-            </div>
-            <OrderForm />
-          </div>
-
-          <div className="hidden md:block w-16 h-96 bg-gradient-to-r from-[#e8e4de] to-[#d6cfc4] border-l-4 border-r-4 border-[#b38b5d]/30 shadow-lg rounded-sm"></div>
-        </div>
-      </section>
 
       {/* ================= БЛОК 2: ПОРТФОЛИО ================= */}
       <section id="portfolio" className="max-w-6xl mx-auto px-6 w-full">
@@ -100,6 +75,32 @@ export default function Home() {
         )}
       </section>
 
+      {/* ================= БЛОК 1: ГЛАВНАЯ + КАЛЬКУЛЯТОР ================= */}
+      <section id="calculator" className="min-h-screen flex items-center justify-center py-16 px-4 relative">
+        <div className="absolute inset-0 pointer-events-none opacity-30"
+             style={{ backgroundImage: `repeating-linear-gradient(45deg, #d6cfc4 0px, #d6cfc4 2px, transparent 2px, transparent 8px)`, backgroundSize: '20px 20px' }}>
+        </div>
+
+        <div className="relative z-10 max-w-5xl w-full flex flex-col md:flex-row items-center justify-center gap-12">
+          <div className="hidden md:block w-16 h-96 bg-gradient-to-r from-[#e8e4de] to-[#d6cfc4] border-l-4 border-r-4 border-[#b38b5d]/30 shadow-lg rounded-sm"></div>
+
+          <div className="flex-1 w-full">
+            <div className="text-center mb-10">
+              <div className="inline-block mb-2 bg-[#e8e4de] px-6 py-2 rounded-sm border border-[#b38b5d]/30 text-xs uppercase tracking-[0.3em] text-[#b38b5d] font-cinzel">ΕΛΛΑΣ (Эллада)</div>
+              <h1 className="font-cinzel text-5xl md:text-6xl text-[#2c2a28] font-bold leading-tight">
+                Античная <br /><span className="text-[#b38b5d]">лепнина</span>
+              </h1>
+              <p className="text-lg text-[#5a5249] font-inter mt-4 max-w-lg mx-auto leading-relaxed">
+                Воссоздаем величие древних храмов. 15 лет опыта, индивидуальные проекты, выезд на замер.
+              </p>
+            </div>
+            <OrderForm />
+          </div>
+
+          <div className="hidden md:block w-16 h-96 bg-gradient-to-r from-[#e8e4de] to-[#d6cfc4] border-l-4 border-r-4 border-[#b38b5d]/30 shadow-lg rounded-sm"></div>
+        </div>
+      </section>
+      
       {/* ================= БЛОК 3: КОНТАКТЫ ================= */}
       <section id="contacts" className="max-w-2xl mx-auto w-full px-6 text-center">
         <h2 className="font-cinzel text-4xl text-[#2c2a28] mb-6">Свяжитесь с нами</h2>
