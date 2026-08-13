@@ -1,4 +1,4 @@
-// app/albums/[id]/page.tsx
+// app/albums/[id]/page.tsx и Привет !!! )))
 import { albums, works } from '@/app/data/works';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
