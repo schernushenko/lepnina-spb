@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdminCredentials } from '@/app/data/config';
+
+// Данные конфигурации для проверки учетных данных
+let configData = {
+  admin: {
+    username: 'admin',
+    password: 'admin123'
+  }
+};
+
+// Загружаем конфигурацию при запуске
+async function loadConfig() {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const CONFIG_PATH = path.join(process.cwd(), 'config.json');
+    
+    if (fs.existsSync(CONFIG_PATH)) {
+      const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
+      const fullConfig = JSON.parse(data);
+      configData.admin = fullConfig.admin;
+    }
+  } catch (error) {
+    console.error('Error loading config:', error);
+  }
+}
+
+loadConfig();
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +38,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValid = verifyAdminCredentials(username, password);
+    const isValid = configData.admin.username === username && 
+                    configData.admin.password === password;
 
     if (!isValid) {
       return NextResponse.json(
@@ -21,13 +48,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Создаем простую сессию (в реальном проекте используйте JWT или сессии)
     const response = NextResponse.json(
       { success: true, message: 'Вход выполнен успешно' },
       { status: 200 }
     );
 
-    // Устанавливаем куки для сессии (простая реализация)
+    // Устанавливаем куки для сессии
     response.cookies.set('admin_auth', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

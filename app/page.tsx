@@ -39,6 +39,9 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           setWorks(data);
+        } else {
+          // Если API вернуло ошибку, используем статические данные
+          throw new Error('API error');
         }
       } catch (error) {
         console.error('Error loading works:', error);
@@ -62,9 +65,19 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           setConfig(data.company);
+        } else {
+          // Если API вернуло ошибку, используем дефолтные значения
+          throw new Error('API error');
         }
       } catch (error) {
         console.error('Error loading config:', error);
+        // Используем дефолтные значения
+        setConfig({
+          name: 'Античная лепнина',
+          phone: '+7 (999) 123-45-67',
+          email: 'info@ellada-decor.ru',
+          description: '15 лет опыта, индивидуальные проекты, выезд на замер.'
+        });
       } finally {
         setIsConfigLoading(false);
       }

@@ -1,36 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
-const WORKS_FILE_PATH = path.join(process.cwd(), 'app', 'data', 'works.json');
+// Данные работ в памяти
+let worksData = Array.from({ length: 61 }).map((_, i) => ({
+  id: i + 1,
+  src: `/${i + 1}.jpg`,
+  title: `Работа №${i + 1}`,
+  active: true
+}));
 
-// Загружаем работы из файла
-function loadWorks() {
+// Загружаем начальные данные из файла при запуске
+async function loadInitialWorks() {
   try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const WORKS_FILE_PATH = path.join(process.cwd(), 'app', 'data', 'works.json');
+    
     if (fs.existsSync(WORKS_FILE_PATH)) {
       const data = fs.readFileSync(WORKS_FILE_PATH, 'utf-8');
-      return JSON.parse(data);
+      worksData = JSON.parse(data);
     }
   } catch (error) {
     console.error('Error loading works:', error);
   }
-  
-  // Если файла нет, создаем начальные данные
-  const initialWorks = Array.from({ length: 61 }).map((_, i) => ({
-    id: i + 1,
-    src: `/${i + 1}.jpg`,
-    title: `Работа №${i + 1}`,
-    active: true
-  }));
-  
-  saveWorks(initialWorks);
-  return initialWorks;
 }
 
+// Загружаем работы при импорте модуля
+loadInitialWorks();
+
 // Сохраняем работы в файл
-function saveWorks(works: any[]) {
+async function saveWorks() {
   try {
-    fs.writeFileSync(WORKS_FILE_PATH, JSON.stringify(works, null, 2), 'utf-8');
+    const fs = await import('fs');
+    const path = await import('path');
+    const WORKS_FILE_PATH = path.join(process.cwd(), 'app', 'data', 'works.json');
+    
+    fs.writeFileSync(WORKS_FILE_PATH, JSON.stringify(worksData, null, 2), 'utf-8');
   } catch (error) {
     console.error('Error saving works:', error);
   }
@@ -47,14 +51,12 @@ export async function GET(request: NextRequest) {
     
     // Для публичного доступа возвращаем только активные работы
     if (!isAuthenticated) {
-      const works = loadWorks();
-      const activeWorks = works.filter((work: any) => work.active);
+      const activeWorks = worksData.filter(work => work.active);
       return NextResponse.json(activeWorks, { status: 200 });
     }
 
     // Для админа возвращаем все работы
-    const works = loadWorks();
-    return NextResponse.json(works, { status: 200 });
+    return NextResponse.json(worksData, { status: 200 });
   } catch (error) {
     console.error('Get works error:', error);
     return NextResponse.json(
@@ -82,10 +84,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const works = loadWorks();
-    
     // Находим максимальный ID
-    const maxId = works.reduce((max: number, work: any) => Math.max(max, work.id), 0);
+    const maxId = worksData.reduce((max, work) => Math.max(max, work.id), 0);
     
     const workToAdd = {
       id: maxId + 1,
@@ -95,8 +95,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
-    works.push(workToAdd);
-    saveWorks(works);
+    worksData.push(workToAdd);
+    await saveWorks();
 
     return NextResponse.json(
       { success: true, work: workToAdd },
@@ -129,8 +129,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const works = loadWorks();
-    const index = works.findIndex((work: any) => work.id === updatedWork.id);
+    const index = worksData.findIndex(work => work.id === updatedWork.id);
     
     if (index === -1) {
       return NextResponse.json(
@@ -139,11 +138,11 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    works[index] = { ...works[index], ...updatedWork };
-    saveWorks(works);
+    worksData[index] = { ...worksData[index], ...updatedWork };
+    await saveWorks();
 
     return NextResponse.json(
-      { success: true, work: works[index] },
+      { success: true, work: worksData[index] },
       { status: 200 }
     );
   } catch (error) {
@@ -174,9 +173,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const works = loadWorks();
     const workId = parseInt(id);
-    const index = works.findIndex((work: any) => work.id === workId);
+    const index = worksData.findIndex(work => work.id === workId);
     
     if (index === -1) {
       return NextResponse.json(
@@ -186,8 +184,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Вместо удаления помечаем как неактивную
-    works[index].active = false;
-    saveWorks(works);
+    worksData[index].active = false;
+    await saveWorks();
 
     return NextResponse.json(
       { success: true, message: 'Работа деактивирована' },
