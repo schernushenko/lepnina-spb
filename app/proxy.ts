@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export default function proxy(request: NextRequest) {
+export default function proxy() {
   // Временно отключаем защиту для тестирования
   return NextResponse.next();
 }

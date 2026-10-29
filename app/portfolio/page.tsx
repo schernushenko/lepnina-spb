@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Массив работ
 const works = Array.from({ length: 61 }).map((_, i) => ({
@@ -14,18 +14,25 @@ export default function PortfolioPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   // Открыть лайтбокс
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
     setIsOpen(true);
-    // Блокируем прокрутку страницы, когда лайтбокс открыт
-    document.body.style.overflow = 'hidden';
   };
 
   // Закрыть лайтбокс
   const closeLightbox = () => {
     setIsOpen(false);
-    document.body.style.overflow = 'auto'; // Возвращаем прокрутку
   };
 
   // Листать вперед/назад

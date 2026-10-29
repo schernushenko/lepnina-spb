@@ -19,49 +19,32 @@ interface CompanyConfig {
 }
 
 export default function Home() {
-  const [works, setWorks] = useState<Work[]>([]);
-  const [config, setConfig] = useState<CompanyConfig>({
-    name: 'Античная лепнина',
-    phone: '+7 (999) 123-45-67',
-    email: 'info@ellada-decor.ru',
-    description: '{config.description}'
-  });
-  const [isOpen, setIsOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isConfigLoading, setIsConfigLoading] = useState(true);
-
-  // Временно используем статические данные, пока не решим проблему с API
-  useEffect(() => {
-    // Статические данные для работ
-    const staticWorks = Array.from({ length: 61 }).map((_, i) => ({
+  const [works, setWorks] = useState<Work[]>(
+    Array.from({ length: 61 }, (_, i) => ({
       id: i + 1,
       src: `/${i + 1}.jpg`,
       title: `Работа №${i + 1}`,
       active: true
-    }));
-    
-    // Статические данные для конфигурации
-    const staticConfig = {
-      name: 'Античная лепнина',
-      phone: '+7 (999) 123-45-67',
-      email: 'info@ellada-decor.ru',
-      description: '15 лет опыта, индивидуальные проекты, выезд на замер.'
-    };
-    
-    setWorks(staticWorks);
-    setConfig(staticConfig);
-    setIsLoading(false);
-    setIsConfigLoading(false);
-    
+    }))
+  );
+  const [config, setConfig] = useState<CompanyConfig>({
+    name: 'Античная лепнина',
+    phone: '+7 (999) 123-45-67',
+    email: 'info@ellada-decor.ru',
+    description: '15 лет опыта, индивидуальные проекты, выезд на замер.'
+  });
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading] = useState(false);
+
+  useEffect(() => {
     // Пробуем загрузить из старого стиля API (pages/api)
     const tryLoadFromOldAPI = async () => {
       try {
         console.log('Пробуем загрузить данные из старого API (pages/api)...');
         const [worksResponse, configResponse] = await Promise.all([
           fetch('/api/admin/works').catch(() => null),
-          fetch('/api/admin/config').catch(() => null),
-          fetch('/api/old-style').catch(() => null) // Тестовый маршрут
+          fetch('/api/admin/config').catch(() => null)
         ]);
         
         if (worksResponse?.ok) {
@@ -86,24 +69,36 @@ export default function Home() {
           }
         }
       } catch (error) {
-        console.log('Old API loading failed:', error.message);
+        console.log(
+          'Old API loading failed:',
+          error instanceof Error ? error.message : String(error)
+        );
       }
     };
     
     // Запускаем попытку загрузки из старого API с задержкой
-    setTimeout(tryLoadFromOldAPI, 2000);
+    const timeoutId = setTimeout(tryLoadFromOldAPI, 2000);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
     setIsOpen(true);
-    document.body.style.overflow = 'hidden';
   };
 
   const closeLightbox = () => {
     setIsOpen(false);
-    document.body.style.overflow = 'auto';
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   const goToNext = () => setCurrentIndex((prev) => (prev + 1) % works.length);
   const goToPrev = () => setCurrentIndex((prev) => (prev - 1 + works.length) % works.length);

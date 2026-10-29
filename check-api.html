@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Проверка API</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .endpoint { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Проверка API маршрутов</h1>
+    
+    <div class="endpoint">
+        <h3>1. Тестовый API</h3>
+        <button onclick="testEndpoint('/api/test')">Проверить /api/test</button>
+        <div id="result-test"></div>
+    </div>
+    
+    <div class="endpoint">
+        <h3>2. API работ (упрощенный)</h3>
+        <button onclick="testEndpoint('/api/admin/works/simple')">Проверить /api/admin/works/simple</button>
+        <div id="result-works-simple"></div>
+    </div>
+    
+    <div class="endpoint">
+        <h3>3. API работ (основной)</h3>
+        <button onclick="testEndpoint('/api/admin/works')">Проверить /api/admin/works</button>
+        <div id="result-works"></div>
+    </div>
+    
+    <div class="endpoint">
+        <h3>4. API конфигурации</h3>
+        <button onclick="testEndpoint('/api/admin/config')">Проверить /api/admin/config</button>
+        <div id="result-config"></div>
+    </div>
+    
+    <div class="endpoint">
+        <h3>5. Проверка главной страницы</h3>
+        <button onclick="testEndpoint('/')">Проверить главную страницу</button>
+        <div id="result-home"></div>
+    </div>
+    
+    <script>
+        async function testEndpoint(endpoint) {
+            const resultId = `result${endpoint.replace(/\//g, '-')}`;
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.innerHTML = '⏳ Проверяем...';
+            
+            try {
+                const response = await fetch(endpoint);
+                const contentType = response.headers.get('content-type');
+                const text = await response.text();
+                
+                let result = `<div>Status: ${response.status} ${response.statusText}</div>`;
+                result += `<div>Content-Type: ${contentType || 'не указан'}</div>`;
+                result += `<div>Длина ответа: ${text.length} символов</div>`;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    try {
+                        const json = JSON.parse(text);
+                        result += `<div class="success">✅ Это JSON!</div>`;
+                        result += `<pre>${JSON.stringify(json, null, 2).substring(0, 500)}...</pre>`;
+                    } catch (e) {
+                        result += `<div class="error">❌ Невалидный JSON</div>`;
+                    }
+                } else if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+                    result += `<div class="error">❌ Это HTML страница</div>`;
+                    result += `<div>Первые 200 символов: ${text.substring(0, 200)}...</div>`;
+                } else {
+                    result += `<div>Первые 200 символов: ${text.substring(0, 200)}...</div>`;
+                }
+                
+                resultDiv.innerHTML = result;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+        
+        // Автоматически проверяем тестовый API при загрузке
+        window.onload = () => testEndpoint('/api/test');
+    </script>
+</body>
+</html>

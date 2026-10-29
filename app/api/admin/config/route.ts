@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Данные конфигурации в памяти
-let configData = {
+const configData = {
   admin: {
     username: 'admin',
     password: 'admin123'

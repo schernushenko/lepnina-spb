@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 const products = [
   { id: 1, name: 'Ионическая колонна', unit: 'шт', price: 8500 },
@@ -23,12 +23,12 @@ export default function OrderForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const { register, handleSubmit, watch, reset } = useForm<FormData>({
+  const { register, handleSubmit, control, reset } = useForm<FormData>({
     defaultValues: { quantity: 1 }
   });
 
-  const selectedProductId = watch('productId');
-  const quantity = watch('quantity') || 0;
+  const selectedProductId = useWatch({ control, name: 'productId' });
+  const quantity = useWatch({ control, name: 'quantity' }) || 0;
 
   const selectedProduct = products.find(p => p.id === Number(selectedProductId));
   const totalPrice = selectedProduct ? selectedProduct.price * quantity : 0;

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Work {
   id: number;
@@ -31,41 +32,33 @@ export default function AdminPage() {
   });
   
   const [newWork, setNewWork] = useState({
-    title: '',
-    src: ''
+    title: ''
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [workFormError, setWorkFormError] = useState('');
+  const [isAddingWork, setIsAddingWork] = useState(false);
 
-  // Проверка авторизации при загрузке
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  // Загрузка данных
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadWorks();
-      loadConfig();
-    }
-  }, [isAuthenticated]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/config');
-      if (response.ok) {
+      const response = await fetch('/api/admin/config', { cache: 'no-store' });
+      const data: { admin?: { username?: string } } = await response.json();
+
+      if (response.ok && data.admin?.username) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
-        router.push('/admin/login');
+        router.replace('/admin/login');
       }
     } catch (error) {
+      console.error('Authentication check failed:', error);
       setIsAuthenticated(false);
-      router.push('/admin/login');
+      router.replace('/admin/login');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const loadWorks = async () => {
+  const loadWorks = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/works');
       if (response.ok) {
@@ -75,9 +68,9 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error loading works:', error);
     }
-  };
+  }, []);
 
-  const loadConfig = async () => {
+  const loadConfig = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/config');
       if (response.ok) {
@@ -87,7 +80,26 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error loading config:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void checkAuth();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void loadWorks();
+      void loadConfig();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isAuthenticated, loadWorks, loadConfig]);
 
   const handleLogout = async () => {
     try {
@@ -101,21 +113,38 @@ export default function AdminPage() {
 
   const handleAddWork = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newWork.title || !newWork.src) return;
+    if (!newWork.title || !selectedImage) {
+      setWorkFormError('Укажите название работы и выберите изображение.');
+      return;
+    }
 
+    setWorkFormError('');
+    setIsAddingWork(true);
     try {
+      const formData = new FormData();
+      formData.set('title', newWork.title);
+      formData.set('image', selectedImage);
+
       const response = await fetch('/api/admin/works', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newWork)
+        body: formData
       });
 
       if (response.ok) {
-        setNewWork({ title: '', src: '' });
-        loadWorks();
+        setNewWork({ title: '' });
+        setSelectedImage(null);
+        const fileInput = document.getElementById('work-image') as HTMLInputElement | null;
+        if (fileInput) fileInput.value = '';
+        await loadWorks();
+      } else {
+        const data = await response.json();
+        setWorkFormError(data.error || 'Не удалось добавить работу.');
       }
     } catch (error) {
       console.error('Error adding work:', error);
+      setWorkFormError('Ошибка соединения при загрузке изображения.');
+    } finally {
+      setIsAddingWork(false);
     }
   };
 
@@ -230,26 +259,30 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Путь к изображению
+                    Изображение работы
                   </label>
                   <input
-                    type="text"
-                    value={newWork.src}
-                    onChange={(e) => setNewWork({ ...newWork, src: e.target.value })}
+                    id="work-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setSelectedImage(e.target.files?.[0] ?? null)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Например: /new-work.jpg"
                     required
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Загрузите изображение в папку public и укажите путь
+                    Выберите изображение на компьютере (до 20 МБ). Оно будет сохранено в папку public.
                   </p>
                 </div>
               </div>
+              {workFormError && (
+                <p className="mb-4 text-sm text-red-600" role="alert">{workFormError}</p>
+              )}
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                disabled={isAddingWork}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Добавить работу
+                {isAddingWork ? 'Загрузка...' : 'Добавить работу'}
               </button>
             </form>
 
@@ -264,9 +297,12 @@ export default function AdminPage() {
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                        <img
+                        <Image
                           src={work.src}
                           alt={work.title}
+                          width={64}
+                          height={64}
+                          unoptimized
                           className="w-full h-full object-cover"
                         />
                       </div>

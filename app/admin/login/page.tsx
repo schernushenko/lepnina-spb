@@ -29,7 +29,7 @@ export default function LoginPage() {
       } else {
         setError(data.error || 'Ошибка входа');
       }
-    } catch (error) {
+    } catch {
       setError('Ошибка соединения с сервером');
     } finally {
       setIsLoading(false);
