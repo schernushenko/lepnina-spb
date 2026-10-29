@@ -20,6 +20,9 @@
 
 # production
 /build
+/data/calculator.sqlite
+/data/calculator.sqlite-shm
+/data/calculator.sqlite-wal
 
 # misc
 .DS_Store

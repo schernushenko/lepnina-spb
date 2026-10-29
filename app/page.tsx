@@ -187,10 +187,6 @@ export default function Home() {
         <div className="flex flex-col md:flex-row items-start justify-center gap-16 shadow-xl border border-[#b38b5d]/20 rounded-sm p-8 bg-[#fcfbf9]"
              data-aos="fade-up">
           <div className="flex-1 w-full">
-            <h2 className="font-cinzel text-4xl text-center md:text-left text-[#2c2a28] mb-4">Рассчитайте заказ</h2>
-            <p className="text-center md:text-left text-[#5a5249] font-inter mb-8">
-              Выберите изделие, укажите количество. Цена пересчитается мгновенно.
-            </p>
             <OrderForm />
           </div>
         </div>

@@ -22,3 +22,39 @@ body {
   color: var(--foreground);
   font-family: 'Inter', system-ui, sans-serif;
 }
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .calculator,
+  .calculator * {
+    visibility: visible;
+  }
+
+  .calculator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    color: black;
+  }
+
+  .calculator .print-hide,
+  .calculator form,
+  .calculator section[aria-label="Каталог изделий"] {
+    display: none !important;
+  }
+
+  .calculator section {
+    break-inside: avoid;
+    border-color: #999;
+    box-shadow: none;
+  }
+}
