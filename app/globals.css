@@ -2,11 +2,11 @@
 @import "aos/dist/aos.css";
 
 :root {
-  --background: #f3efe8; /* Цвет античного мрамора */
-  --foreground: #2c2a28; /* Глубокий камень */
-  --gold: #b38b5d;       /* Античное золото */
-  --terracotta: #9e4e3c; /* Терракотовый (греческие вазы) */
-  --marble-grey: #d6cfc4;/* Тень мрамора */
+  --background: #f7f5f0;
+  --foreground: #292b25;
+  --gold: #a67b4e;
+  --terracotta: #9e4e3c;
+  --marble-grey: #d6cfc4;
 }
 
 @theme inline {
@@ -20,7 +20,170 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.site-home {
+  overflow: clip;
+  background: #f7f5f0;
+  color: #292b25;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+.site-header {
+  box-shadow: 0 1px 0 rgb(255 255 255 / 45%);
+}
+
+.site-header a:focus-visible,
+.site-header button:focus-visible,
+.site-home a:focus-visible,
+.site-home button:focus-visible {
+  outline: 2px solid #a67b4e;
+  outline-offset: 3px;
+}
+
+.site-hero-image {
+  filter: brightness(0.82) saturate(0.72);
+  transition: filter 700ms ease, transform 1000ms cubic-bezier(0.2, 0.65, 0.3, 1);
+}
+
+.site-hero-visual:hover .site-hero-image {
+  filter: brightness(0.92) saturate(0.82);
+  transform: scale(1.025);
+}
+
+.site-project-card {
+  box-shadow: 0 12px 35px rgb(46 41 31 / 7%);
+}
+
+.site-project-card:focus-visible {
+  outline-offset: 5px;
+}
+
+.site-project-image {
+  filter: saturate(0.82);
+}
+
+.site-project-card:hover .site-project-image {
+  filter: saturate(1);
+}
+
+.site-process-card {
+  box-shadow: 0 2px 6px rgb(46 41 31 / 2%);
+}
+
+.site-calculator-panel .calculator {
+  max-width: none;
+}
+
+.site-calculator-panel .calculator > section,
+.site-calculator-panel .calculator > form,
+.site-calculator-panel .calculator section[role='status'] {
+  border: 1px solid #e6e1d8;
+  border-radius: 1rem;
+  background: #fff;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  box-shadow: 0 2px 8px rgb(38 37 31 / 3%);
+}
+
+.site-calculator-panel .calculator h2,
+.site-calculator-panel .calculator h3 {
+  color: #30312b;
+}
+
+.site-calculator-panel .calculator article {
+  overflow: hidden;
+  border: 1px solid #e8e4dc;
+  border-radius: 0.9rem;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(38 37 31 / 4%);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.site-calculator-panel .calculator article:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgb(38 37 31 / 8%);
+}
+
+.site-calculator-panel .calculator article > div:first-child {
+  background: #f0eee8;
+}
+
+.site-calculator-panel .calculator input:not([type='checkbox']),
+.site-calculator-panel .calculator textarea,
+.site-calculator-panel .calculator select {
+  min-height: 2.7rem;
+  border: 1px solid #e5e2db;
+  border-radius: 0.6rem;
+  background-color: #fff;
+  padding: 0.625rem 0.8rem;
+  color: #34352f;
+  font: inherit;
+  font-size: 0.8125rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.site-calculator-panel .calculator textarea {
+  min-height: 5.5rem;
+}
+
+.site-calculator-panel .calculator input:not([type='checkbox']):focus,
+.site-calculator-panel .calculator textarea:focus,
+.site-calculator-panel .calculator select:focus {
+  border-color: #a67b4e;
+  box-shadow: 0 0 0 3px rgb(166 123 78 / 13%);
+}
+
+.site-calculator-panel .calculator button:not(:disabled) {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.site-calculator-panel .calculator button[class*='bg-[#b38b5d]'],
+.site-calculator-panel .calculator button.bg-green-700 {
+  border-radius: 0.6rem;
+  background-color: #292b25;
+}
+
+.site-calculator-panel .calculator button[class*='bg-[#b38b5d]']:hover,
+.site-calculator-panel .calculator button.bg-green-700:hover {
+  background-color: #45463d;
+}
+
+.site-calculator-panel .calculator input[type='checkbox'] {
+  accent-color: #292b25;
+}
+
+.site-calculator-panel .calculator #quote {
+  scroll-margin-top: 6rem;
+}
+
+.site-footer {
+  background: #252720;
+  color: #f4f0e8;
+}
+
+.site-footer a {
+  transition: color 150ms ease;
+}
+
+.site-footer a:hover {
+  color: #d0b38b;
+}
+
+.site-footer a:focus-visible {
+  outline: 2px solid #d0b38b;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-home *,
+  .site-header * {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body:has(.admin-shell) > nav,
