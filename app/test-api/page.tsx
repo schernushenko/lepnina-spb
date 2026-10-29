@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import packageJson from '../../package.json';
 
 interface ApiTestResult {
   endpoint: string;
@@ -21,6 +22,7 @@ const endpoints = [
 
 export default function TestApiPage() {
   const [results, setResults] = useState<ApiTestResult[]>([]);
+  const nextVersion = packageJson.dependencies.next.replace(/^[~^]/, '');
 
   useEffect(() => {
     const testEndpoints = async () => {
@@ -82,7 +84,7 @@ export default function TestApiPage() {
     <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Тестирование API маршрутов</h1>
       <p className="mb-6 text-gray-600">
-        Эта страница проверяет доступность API маршрутов в Next.js 16.3.0
+        Эта страница проверяет доступность API маршрутов в Next.js {nextVersion}
       </p>
       
       <div className="space-y-4">

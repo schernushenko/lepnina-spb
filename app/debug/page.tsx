@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import packageJson from '../../package.json';
 
 interface ApiTestResult {
   url: string;
@@ -19,6 +20,7 @@ interface ApiTestResult {
 export default function DebugPage() {
   const [results, setResults] = useState<ApiTestResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const nextVersion = packageJson.dependencies.next.replace(/^[~^]/, '');
 
   const endpoints = [
     // Старые API (pages/api)
@@ -119,12 +121,12 @@ export default function DebugPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Отладка API маршрутов Next.js 16.3.0</h1>
+      <h1 className="text-3xl font-bold mb-6">Отладка API маршрутов Next.js {nextVersion}</h1>
       
       <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h2 className="font-bold text-blue-800 mb-2">Информация о проекте:</h2>
         <ul className="list-disc pl-5 text-blue-700 space-y-1">
-          <li>Next.js 16.3.0 (очень старая версия)</li>
+          <li>Текущая версия Next.js: {nextVersion}</li>
           <li>Проверяем поддержку app/api и pages/api</li>
           <li>Синие маркеры - pages/api (старый стиль)</li>
           <li>Зеленые маркеры - app/api (новый стиль)</li>

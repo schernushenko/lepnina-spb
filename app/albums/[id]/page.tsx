@@ -1,13 +1,13 @@
-// app/albums/[id]/page.tsx и Привет !!! )))
 import { albums, works } from '@/app/data/works';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
-export default function AlbumPage({ params }: { params: { id: string } }) {
-  const album = albums.find((a) => a.id === params.id);
+export default async function AlbumPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const album = albums.find((a) => a.id === id);
   if (!album) return notFound();
 
-  const albumWorks = works.filter((w) => w.albumId === params.id);
+  const albumWorks = works.filter((w) => w.albumId === id);
 
   return (
     <main className="p-8">
