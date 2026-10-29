@@ -606,13 +606,16 @@ export default function CalculatorAdminPage() {
                 ))}
               </div>
             </section>
-            <form onSubmit={saveProduct} className="space-y-3 rounded bg-white p-5 shadow">
-              <h2 className="text-xl font-semibold">{productForm.id ? 'Редактировать изделие' : 'Новое изделие'}</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input required placeholder="Название" value={productForm.name} onChange={(event) => setProductForm({ ...productForm, name: event.target.value, slug: productForm.slug || slugify(event.target.value) })} className="rounded border p-2" />
-                <input required placeholder="Slug" value={productForm.slug} onChange={(event) => setProductForm({ ...productForm, slug: event.target.value })} className="rounded border p-2" />
+            <form onSubmit={saveProduct} className="admin-product-form min-w-0 space-y-4 rounded bg-white p-5 shadow">
+              <div>
+                <h2 className="text-xl font-semibold">{productForm.id ? 'Редактировать изделие' : 'Новое изделие'}</h2>
+                <p className="mt-1 text-xs text-gray-500">Добавьте основную информацию, цену и варианты изделия.</p>
               </div>
-              <textarea placeholder="Краткое описание" value={productForm.description} onChange={(event) => setProductForm({ ...productForm, description: event.target.value })} className="w-full rounded border p-2" rows={2} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input required placeholder="Название" aria-label="Название изделия" value={productForm.name} onChange={(event) => setProductForm({ ...productForm, name: event.target.value, slug: productForm.slug || slugify(event.target.value) })} className="min-w-0 w-full rounded border p-2" />
+                <input required placeholder="Slug" aria-label="Slug изделия" value={productForm.slug} onChange={(event) => setProductForm({ ...productForm, slug: event.target.value })} className="min-w-0 w-full rounded border p-2" />
+              </div>
+              <textarea placeholder="Краткое описание" aria-label="Краткое описание" value={productForm.description} onChange={(event) => setProductForm({ ...productForm, description: event.target.value })} className="min-w-0 w-full rounded border p-2" rows={2} />
               <div className="grid gap-3 sm:grid-cols-2">
                 <select value={productForm.categoryId} onChange={(event) => setProductForm({ ...productForm, categoryId: event.target.value })} className="rounded border p-2">
                   <option value="">Без категории</option>{data.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
@@ -628,14 +631,14 @@ export default function CalculatorAdminPage() {
                 <input type="number" min="0" step="0.01" disabled={productForm.priceType === 'request'} required={productForm.priceType !== 'request'} placeholder="Цена, ₽" value={productForm.price} onChange={(event) => setProductForm({ ...productForm, price: event.target.value })} className="rounded border p-2 disabled:bg-gray-100" />
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="text-sm">Минимум<input required min="0.001" step="0.001" type="number" value={productForm.minimum} onChange={(event) => setProductForm({ ...productForm, minimum: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
-                <label className="text-sm">Шаг<input required min="0.001" step="0.001" type="number" value={productForm.step} onChange={(event) => setProductForm({ ...productForm, step: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
-                <label className="text-sm">Порядок<input min="0" type="number" value={productForm.sortOrder} onChange={(event) => setProductForm({ ...productForm, sortOrder: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
+                <label className="min-w-0 text-sm">Минимум<input required min="0.001" step="0.001" type="number" value={productForm.minimum} onChange={(event) => setProductForm({ ...productForm, minimum: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
+                <label className="min-w-0 text-sm">Шаг<input required min="0.001" step="0.001" type="number" value={productForm.step} onChange={(event) => setProductForm({ ...productForm, step: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
+                <label className="min-w-0 text-sm">Порядок<input min="0" type="number" value={productForm.sortOrder} onChange={(event) => setProductForm({ ...productForm, sortOrder: event.target.value })} className="mt-1 w-full rounded border p-2" /></label>
               </div>
               <label className="flex gap-2"><input type="checkbox" checked={productForm.active} onChange={(event) => setProductForm({ ...productForm, active: event.target.checked })} />Активно в публичном каталоге</label>
               <div>
                 <label className="block text-sm font-medium">Изображения (до 10, первое — главное)</label>
-                <input type="file" accept="image/*" multiple onChange={(event) => { void uploadProductImages(event.target.files); event.currentTarget.value = ''; }} className="mt-1 block w-full rounded border p-2" />
+                <input type="file" accept="image/*" multiple onChange={(event) => { void uploadProductImages(event.target.files); event.currentTarget.value = ''; }} className="admin-product-file mt-1 block w-full min-w-0 rounded border p-2" />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {productForm.images.map((image, index) => (
                     <div key={image} className="relative h-20 w-20 border">
@@ -651,16 +654,35 @@ export default function CalculatorAdminPage() {
                   ))}
                 </div>
               </div>
-              <div className="border-t pt-3">
-                <div className="mb-2 flex items-center justify-between"><h3 className="font-medium">Варианты</h3><button type="button" onClick={() => setProductForm((current) => ({ ...current, variants: [...current.variants, { id: crypto.randomUUID(), name: '', price: '', image: '' }] }))} className="text-sm text-blue-700">Добавить вариант</button></div>
+              <div className="admin-product-variants border-t border-gray-200 pt-4">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-medium">Варианты изделия</h3>
+                    <p className="mt-0.5 text-xs text-gray-500">Размеры и исполнения с отдельными ценами.</p>
+                  </div>
+                  <button type="button" onClick={() => setProductForm((current) => ({ ...current, variants: [...current.variants, { id: crypto.randomUUID(), name: '', price: '', image: '' }] }))} className="rounded-lg border border-[#e5e5df] px-3 py-2 text-xs font-medium text-[#806344] transition-colors hover:bg-[#f7f5f0]">+ Добавить вариант</button>
+                </div>
                 {productForm.variants.map((variant, index) => (
-                  <div key={variant.id} className="mb-2 grid gap-2 rounded border p-2 sm:grid-cols-[1fr_120px_1fr_auto]">
-                    <input required placeholder="Название, например 50 см" value={variant.name} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, name: event.target.value } : item) }))} className="rounded border p-2" />
-                    <input type="number" min="0" step="0.01" placeholder="Цена, ₽" value={variant.price} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, price: event.target.value } : item) }))} className="rounded border p-2" />
-                    <select value={variant.image} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, image: event.target.value } : item) }))} className="rounded border p-2">
-                      <option value="">Основное фото</option>{productForm.images.map((image) => <option key={image} value={image}>{image.split('/').pop()}</option>)}
-                    </select>
-                    <button type="button" onClick={() => setProductForm((current) => ({ ...current, variants: current.variants.filter((_, i) => i !== index) }))} className="text-red-700">Удалить</button>
+                  <div key={variant.id} className="admin-product-variant mb-2 rounded-xl border border-[#e9e9e5] bg-[#fafaf8] p-3">
+                    <div className="admin-product-variant-fields">
+                      <label className="min-w-0 text-xs font-medium text-[#55574f]">
+                        Название варианта
+                        <input required placeholder="Например, 50 см" aria-label={`Название варианта ${index + 1}`} value={variant.name} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, name: event.target.value } : item) }))} className="mt-1.5 w-full min-w-0 rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal" />
+                      </label>
+                      <label className="min-w-0 text-xs font-medium text-[#55574f]">
+                        Цена, ₽
+                        <input type="number" min="0" step="0.01" placeholder="0" aria-label={`Цена варианта ${index + 1}`} value={variant.price} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, price: event.target.value } : item) }))} className="mt-1.5 w-full min-w-0 rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal" />
+                      </label>
+                    </div>
+                    <div className="admin-product-variant-footer mt-2">
+                      <label className="min-w-0 text-xs font-medium text-[#55574f]">
+                        Изображение
+                        <select value={variant.image} aria-label={`Изображение варианта ${index + 1}`} onChange={(event) => setProductForm((current) => ({ ...current, variants: current.variants.map((item, i) => i === index ? { ...item, image: event.target.value } : item) }))} className="mt-1.5 w-full min-w-0 rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal">
+                          <option value="">Основное фото</option>{productForm.images.map((image) => <option key={image} value={image}>{image.split('/').pop()}</option>)}
+                        </select>
+                      </label>
+                      <button type="button" onClick={() => setProductForm((current) => ({ ...current, variants: current.variants.filter((_, i) => i !== index) }))} className="admin-product-variant-delete self-end rounded-lg px-3 py-2.5 text-xs font-medium text-[#a14d3c] transition-colors hover:bg-[#fbf2ef]">Удалить вариант</button>
+                    </div>
                   </div>
                 ))}
               </div>

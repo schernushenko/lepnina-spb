@@ -284,6 +284,71 @@ body:has(.admin-login) > footer {
   border-radius: 0.75rem;
 }
 
+.admin-product-form {
+  container: product-form / inline-size;
+}
+
+.admin-product-form > input,
+.admin-product-form > textarea,
+.admin-product-form > select,
+.admin-product-form > .grid > input,
+.admin-product-form > .grid > select {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-product-file {
+  overflow: hidden;
+  border-color: #e5e5df;
+  border-radius: 0.625rem;
+  background: #fff;
+  color: #777971;
+  font-size: 0.75rem;
+}
+
+.admin-product-file::file-selector-button {
+  margin: -0.5rem 0.75rem -0.5rem -0.5rem;
+  border: 0;
+  border-right: 1px solid #e5e5df;
+  background: #f7f7f4;
+  padding: 0.75rem 1rem;
+  color: #55574f;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.admin-product-variant-fields,
+.admin-product-variant-footer {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+  gap: 0.75rem;
+}
+
+.admin-product-variant-footer {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.admin-product-variant-fields input,
+.admin-product-variant-footer select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+@container product-form (max-width: 400px) {
+  .admin-product-variant-fields,
+  .admin-product-variant-footer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-product-variant-delete {
+    justify-self: start;
+  }
+}
+
 .admin-shell button[class*='bg-blue-700'],
 .admin-shell button[class*='bg-blue-600'] {
   background-color: #292b25;

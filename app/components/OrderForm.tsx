@@ -109,12 +109,16 @@ export default function OrderForm() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [notice, setNotice] = useState('');
   const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
     let active = true;
-    fetch('/api/calculator', { cache: 'no-store' })
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
+
+    fetch('/api/calculator', { cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error('Не удалось загрузить каталог калькулятора');
         return response.json() as Promise<CalculatorData>;
@@ -123,11 +127,22 @@ export default function OrderForm() {
         if (active) setData(catalog);
       })
       .catch((loadError: unknown) => {
-        if (active) setError(loadError instanceof Error ? loadError.message : 'Ошибка загрузки каталога');
+        if (!active) return;
+        setError(
+          loadError instanceof DOMException && loadError.name === 'AbortError'
+            ? 'Каталог не ответил за 15 секунд. Проверьте соединение и попробуйте ещё раз.'
+            : loadError instanceof Error
+              ? loadError.message
+              : 'Ошибка загрузки каталога'
+        );
       });
 
-    return () => { active = false; };
-  }, []);
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [catalogAttempt]);
 
   useEffect(() => {
     if (!data || cartReady) return;
@@ -336,7 +351,23 @@ export default function OrderForm() {
   if (!data) {
     return (
       <div className="w-full max-w-6xl mx-auto rounded-sm border border-[#b38b5d]/30 bg-[#fcfbf9] p-8 text-center">
-        {error ? <p className="text-red-700">{error}</p> : <p>Загружаем каталог…</p>}
+        {error ? (
+          <div className="space-y-4">
+            <p className="text-red-700">{error}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setError('');
+                setCatalogAttempt((attempt) => attempt + 1);
+              }}
+              className="rounded-sm bg-[#28251f] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#514839]"
+            >
+              Попробовать снова
+            </button>
+          </div>
+        ) : (
+          <p>Загружаем каталог…</p>
+        )}
       </div>
     );
   }
