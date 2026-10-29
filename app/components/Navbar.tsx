@@ -16,6 +16,7 @@ export default function Navbar() {
           <a href="#calculator" className="hover:text-[#b38b5d] transition-colors cursor-pointer">Калькулятор</a>
           <a href="#portfolio" className="hover:text-[#b38b5d] transition-colors cursor-pointer">Портфолио</a>
           <a href="#contacts" className="hover:text-[#b38b5d] transition-colors cursor-pointer">Контакты</a>
+          <Link href="/admin" className="hover:text-[#b38b5d] transition-colors cursor-pointer">Админка</Link>
         </div>
       </div>
     </nav>

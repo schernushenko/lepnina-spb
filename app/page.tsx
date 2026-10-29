@@ -1,20 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import OrderForm from './components/OrderForm';
 
-// ... (Массив works оставляем тем же)
-const works = Array.from({ length: 61 }).map((_, i) => ({
-  id: i + 1,
-  src: `/${i + 1}.jpg`,
-  title: `Работа №${i + 1}`
-}));
+interface Work {
+  id: number;
+  src: string;
+  title: string;
+  active: boolean;
+}
+
+interface CompanyConfig {
+  name: string;
+  phone: string;
+  email: string;
+  description: string;
+}
 
 export default function Home() {
-  // ... (Логика лайтбокса остается точно такой же)
+  const [works, setWorks] = useState<Work[]>([]);
+  const [config, setConfig] = useState<CompanyConfig>({
+    name: 'Античная лепнина',
+    phone: '+7 (999) 123-45-67',
+    email: 'info@ellada-decor.ru',
+    description: '{config.description}'
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isConfigLoading, setIsConfigLoading] = useState(true);
+
+  // Загружаем работы из API
+  useEffect(() => {
+    const fetchWorks = async () => {
+      try {
+        const response = await fetch('/api/admin/works');
+        if (response.ok) {
+          const data = await response.json();
+          setWorks(data);
+        }
+      } catch (error) {
+        console.error('Error loading works:', error);
+        // Fallback к статическим данным
+        const fallbackWorks = Array.from({ length: 61 }).map((_, i) => ({
+          id: i + 1,
+          src: `/${i + 1}.jpg`,
+          title: `Работа №${i + 1}`,
+          active: true
+        }));
+        setWorks(fallbackWorks);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Загружаем конфигурацию
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/admin/config');
+        if (response.ok) {
+          const data = await response.json();
+          setConfig(data.company);
+        }
+      } catch (error) {
+        console.error('Error loading config:', error);
+      } finally {
+        setIsConfigLoading(false);
+      }
+    };
+
+    fetchWorks();
+    fetchConfig();
+  }, []);
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
@@ -39,10 +97,10 @@ export default function Home() {
         <div className="text-center max-w-3xl z-10">
            <div className="inline-block mb-4 px-4 py-1 rounded-sm border border-[#b38b5d]/30 text-xs uppercase tracking-[0.3em] text-[#b38b5d] font-cinzel">ΕΛΛΑΣ (Эллада)</div>
            <h1 className="font-cinzel text-5xl md:text-7xl text-[#2c2a28] font-bold leading-tight">
-             Античная <br /><span className="text-[#b38b5d]">лепнина</span>
+             {config.name}
            </h1>
            <p className="text-lg text-[#5a5249] font-inter mt-6 max-w-xl mx-auto leading-relaxed">
-             15 лет опыта, индивидуальные проекты, выезд на замер.
+             {config.description}
            </p>
            <div className="mt-8">
              <a href="#portfolio" className="inline-block border border-[#b38b5d] text-[#b38b5d] px-8 py-3 hover:bg-[#b38b5d] hover:text-white transition uppercase tracking-widest font-cinzel shadow-sm hover:shadow-lg">
@@ -57,9 +115,20 @@ export default function Home() {
         <h2 className="font-cinzel text-4xl text-center text-[#2c2a28] mb-4" data-aos="fade-up">Наши работы</h2>
         <p className="text-center text-[#5a5249] font-inter mb-12" data-aos="fade-up" data-aos-delay="100">Более 60 реализованных проектов</p>
         
-        {/* Имитация сетки из шаблона */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {works.map((work, index) => (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#b38b5d]"></div>
+            <p className="mt-4 text-[#5a5249]">Загрузка работ...</p>
+          </div>
+        ) : works.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#5a5249]">Работы пока не добавлены</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {works
+              .filter((work) => work.active)
+              .map((work, index) => (
             <div 
               key={work.id} 
               onClick={() => openLightbox(index)}
@@ -83,6 +152,7 @@ export default function Home() {
             </div>
           ))}
         </div>
+        )}
 
         {/* Твой кастомный лайтбокс */}
         {isOpen && (
@@ -120,11 +190,11 @@ export default function Home() {
              data-aos="fade-up">
           <div className="flex flex-col items-center gap-2 border-b md:border-b-0 md:border-r border-[#b38b5d]/20 pb-4 md:pb-0">
             <span className="text-xs uppercase tracking-widest text-[#b38b5d] font-cinzel">Телефон</span>
-            <a href="tel:+79991234567" className="text-xl font-inter text-[#2c2a28] hover:text-[#b38b5d] transition">+7 (999) 123-45-67</a>
+            <a href={`tel:${config.phone}`} className="text-xl font-inter text-[#2c2a28] hover:text-[#b38b5d] transition">{config.phone}</a>
           </div>
           <div className="flex flex-col items-center gap-2">
             <span className="text-xs uppercase tracking-widest text-[#b38b5d] font-cinzel">Email</span>
-            <a href="mailto:info@ellada-decor.ru" className="text-xl font-inter text-[#2c2a28] hover:text-[#b38b5d] transition">info@ellada-decor.ru</a>
+            <a href={`mailto:${config.email}`} className="text-xl font-inter text-[#2c2a28] hover:text-[#b38b5d] transition">{config.email}</a>
           </div>
         </div>
       </section>

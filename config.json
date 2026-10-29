@@ -1,0 +1,12 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "admin123"
+  },
+  "company": {
+    "name": "Античная лепнина",
+    "phone": "+7 (999) 123-45-67",
+    "email": "info@ellada-decor.ru",
+    "description": "15 лет опыта, индивидуальные проекты, выезд на замер."
+  }
+}
