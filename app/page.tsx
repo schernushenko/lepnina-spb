@@ -31,60 +31,67 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
 
-  // Загружаем работы из API
+  // Временно используем статические данные, пока не решим проблему с API
   useEffect(() => {
-    const fetchWorks = async () => {
+    // Статические данные для работ
+    const staticWorks = Array.from({ length: 61 }).map((_, i) => ({
+      id: i + 1,
+      src: `/${i + 1}.jpg`,
+      title: `Работа №${i + 1}`,
+      active: true
+    }));
+    
+    // Статические данные для конфигурации
+    const staticConfig = {
+      name: 'Античная лепнина',
+      phone: '+7 (999) 123-45-67',
+      email: 'info@ellada-decor.ru',
+      description: '15 лет опыта, индивидуальные проекты, выезд на замер.'
+    };
+    
+    setWorks(staticWorks);
+    setConfig(staticConfig);
+    setIsLoading(false);
+    setIsConfigLoading(false);
+    
+    // Пробуем загрузить из старого стиля API (pages/api)
+    const tryLoadFromOldAPI = async () => {
       try {
-        const response = await fetch('/api/admin/works');
-        if (response.ok) {
-          const data = await response.json();
-          setWorks(data);
-        } else {
-          // Если API вернуло ошибку, используем статические данные
-          throw new Error('API error');
+        console.log('Пробуем загрузить данные из старого API (pages/api)...');
+        const [worksResponse, configResponse] = await Promise.all([
+          fetch('/api/admin/works').catch(() => null),
+          fetch('/api/admin/config').catch(() => null),
+          fetch('/api/old-style').catch(() => null) // Тестовый маршрут
+        ]);
+        
+        if (worksResponse?.ok) {
+          const contentType = worksResponse.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const data = await worksResponse.json();
+            console.log('Old API works loaded successfully:', data.length, 'items');
+            setWorks(data);
+          } else {
+            console.log('Works API returned:', contentType);
+          }
+        }
+        
+        if (configResponse?.ok) {
+          const contentType = configResponse.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const data = await configResponse.json();
+            console.log('Old API config loaded successfully');
+            setConfig(data.company || data);
+          } else {
+            console.log('Config API returned:', contentType);
+          }
         }
       } catch (error) {
-        console.error('Error loading works:', error);
-        // Fallback к статическим данным
-        const fallbackWorks = Array.from({ length: 61 }).map((_, i) => ({
-          id: i + 1,
-          src: `/${i + 1}.jpg`,
-          title: `Работа №${i + 1}`,
-          active: true
-        }));
-        setWorks(fallbackWorks);
-      } finally {
-        setIsLoading(false);
+        console.log('Old API loading failed:', error.message);
       }
     };
-
-    // Загружаем конфигурацию
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch('/api/admin/config');
-        if (response.ok) {
-          const data = await response.json();
-          setConfig(data.company);
-        } else {
-          // Если API вернуло ошибку, используем дефолтные значения
-          throw new Error('API error');
-        }
-      } catch (error) {
-        console.error('Error loading config:', error);
-        // Используем дефолтные значения
-        setConfig({
-          name: 'Античная лепнина',
-          phone: '+7 (999) 123-45-67',
-          email: 'info@ellada-decor.ru',
-          description: '15 лет опыта, индивидуальные проекты, выезд на замер.'
-        });
-      } finally {
-        setIsConfigLoading(false);
-      }
-    };
-
-    fetchWorks();
-    fetchConfig();
+    
+    // Запускаем попытку загрузки из старого API с задержкой
+    setTimeout(tryLoadFromOldAPI, 2000);
   }, []);
 
   const openLightbox = (index: number) => {
