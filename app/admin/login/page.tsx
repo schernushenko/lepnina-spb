@@ -37,94 +37,106 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Вход в админ-панель
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Сайт гипсовой лепнины
-        </p>
-      </div>
+    <div className="admin-login flex min-h-screen bg-[#f7f7f5] text-[#292b25]">
+      <aside className="relative hidden w-[46%] flex-col justify-between overflow-hidden bg-[#272a23] p-12 text-white lg:flex xl:p-16">
+        <div className="absolute -right-36 -top-32 size-[520px] rounded-full border border-white/[0.07]" />
+        <div className="absolute -right-20 -top-16 size-[390px] rounded-full border border-white/[0.07]" />
+        <div className="absolute -bottom-48 -left-40 size-[520px] rounded-full border border-white/[0.07]" />
+        <div className="relative flex items-center gap-3">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-white/[0.09]">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6">
+              <path d="M4 20V9l8-5 8 5v11M8 20v-6h8v6M2 20h20" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <span className="text-sm font-semibold tracking-[-0.02em]">Эллада.Декор</span>
+        </div>
+        <div className="relative max-w-lg">
+          <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c2a987]">Пространство управления</p>
+          <h1 className="text-4xl font-medium leading-[1.12] tracking-[-0.05em] xl:text-5xl">
+            Красота<br />начинается<br />с деталей.
+          </h1>
+          <p className="mt-6 max-w-sm text-sm leading-6 text-white/55">
+            Управляйте проектами, каталогом и обращениями клиентов в одном месте.
+          </p>
+        </div>
+        <p className="relative text-[11px] text-white/35">© 2026 Эллада.Декор · Панель управления</p>
+      </aside>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Имя пользователя
-              </label>
-              <div className="mt-1">
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Введите имя пользователя"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Пароль
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder="Введите пароль"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">{error}</div>
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Вход...' : 'Войти'}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Информация</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="bg-gray-50 rounded-md p-4">
-                <p className="text-sm text-gray-600">
-                  • Учетные данные хранятся в файле config.json<br/>
-                  • По умолчанию: admin / admin123<br/>
-                  • Для изменения пароля отредактируйте config.json
-                </p>
-              </div>
+      <main className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
+        <div className="w-full max-w-[390px]">
+          <div className="mb-8 lg:hidden">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-[#292b25] text-white">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5">
+                  <path d="M4 20V9l8-5 8 5v11M8 20v-6h8v6M2 20h20" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span className="text-sm font-semibold">Эллада.Декор</span>
             </div>
           </div>
+          <div className="mb-7">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#a67b4e]">Добро пожаловать</p>
+            <h2 className="text-2xl font-semibold tracking-[-0.045em]">Вход в админ-панель</h2>
+            <p className="mt-2 text-sm text-[#85877f]">Введите данные своей учётной записи</p>
+          </div>
+
+          <form className="space-y-5 rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_8px_32px_rgba(27,30,22,0.045)] sm:p-7" onSubmit={handleSubmit}>
+            <label htmlFor="username" className="block text-xs font-medium text-[#55574f]">
+              Имя пользователя
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="mt-2 block w-full rounded-lg border border-[#e5e5df] bg-white px-3.5 py-3 text-sm text-[#34362f] outline-none transition placeholder:text-[#b2b3ad] focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15"
+                placeholder="Введите имя пользователя"
+              />
+            </label>
+
+            <label htmlFor="password" className="block text-xs font-medium text-[#55574f]">
+              Пароль
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-2 block w-full rounded-lg border border-[#e5e5df] bg-white px-3.5 py-3 text-sm text-[#34362f] outline-none transition placeholder:text-[#b2b3ad] focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15"
+                placeholder="Введите пароль"
+              />
+            </label>
+
+            {error && (
+              <p role="alert" className="rounded-lg border border-[#f0dfda] bg-[#fcf3f0] px-3.5 py-3 text-sm text-[#9b5548]">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#292b25] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#41443b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ae8a63] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Проверяем…
+                </>
+              ) : 'Войти в систему'}
+            </button>
+            <p className="text-center text-[11px] leading-5 text-[#999b94]">
+              Доступ только для авторизованных сотрудников
+            </p>
+          </form>
+
+          <p className="mt-6 text-center text-[11px] text-[#a3a49e]">© 2026 Эллада.Декор</p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

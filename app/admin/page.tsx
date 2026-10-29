@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import AdminShell from './AdminShell';
 
 interface Work {
   id: number;
@@ -102,16 +103,6 @@ export default function AdminPage() {
     return () => window.clearTimeout(timeoutId);
   }, [isAuthenticated, loadWorks, loadConfig]);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      setIsAuthenticated(false);
-      router.push('/admin/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
   const handleAddWork = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWork.title || !selectedImage) {
@@ -200,8 +191,11 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Загрузка...</div>
+      <div className="flex min-h-screen items-center justify-center bg-[#f7f7f5]">
+        <div className="flex items-center gap-3 text-sm font-medium text-[#777971]">
+          <span className="size-4 animate-spin rounded-full border-2 border-[#e3e3dc] border-t-[#a67b4e]" />
+          Загружаем панель управления…
+        </div>
       </div>
     );
   }
@@ -211,222 +205,157 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Админ-панель</h1>
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/" 
-                className="text-gray-600 hover:text-gray-900"
-              >
-                На сайт
-              </Link>
-              <Link href="/admin/calculator" className="text-blue-700 hover:underline">
-                Калькулятор
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-              >
-                Выйти
-              </button>
-            </div>
+    <AdminShell
+      active="dashboard"
+      title="Обзор"
+      description="Управляйте портфолио, контактами и настройками сайта в одном месте."
+    >
+      <main className="space-y-6">
+        <section className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_2px_8px_rgba(27,30,22,0.025)]">
+            <p className="text-xs font-medium text-[#85877f]">Работ в портфолио</p>
+            <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-[#292b25]">{works.length}</p>
+            <p className="mt-2 text-[11px] text-[#999b94]">{works.filter((work) => work.active).length} опубликовано на сайте</p>
           </div>
-        </div>
-      </header>
+          <div className="rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_2px_8px_rgba(27,30,22,0.025)]">
+            <p className="text-xs font-medium text-[#85877f]">Состояние сайта</p>
+            <div className="mt-3 flex items-center gap-2 text-lg font-semibold tracking-[-0.03em] text-[#292b25]">
+              <span className="size-2 rounded-full bg-[#78a279]" />Всё работает
+            </div>
+            <p className="mt-2 text-[11px] text-[#999b94]">Изменения применяются сразу</p>
+          </div>
+          <Link href="/admin/calculator" className="group rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_2px_8px_rgba(27,30,22,0.025)] transition-all hover:-translate-y-0.5 hover:border-[#d8d2c3] hover:shadow-md">
+            <p className="text-xs font-medium text-[#85877f]">Калькулятор</p>
+            <div className="mt-3 flex items-center justify-between text-lg font-semibold tracking-[-0.03em] text-[#292b25]">
+              Каталог и заявки
+              <span className="text-[#a67b4e] transition-transform group-hover:translate-x-1">→</span>
+            </div>
+            <p className="mt-2 text-[11px] text-[#999b94]">Настроить товары и цены</p>
+          </Link>
+        </section>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Левая колонка: Управление работами */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Управление работами</h2>
-            
-            {/* Форма добавления новой работы */}
-            <form onSubmit={handleAddWork} className="mb-8">
-              <div className="grid grid-cols-1 gap-4 mb-4">
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.8fr)]">
+          <section id="portfolio" className="min-w-0 rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_2px_8px_rgba(27,30,22,0.025)] sm:p-6">
+            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold tracking-[-0.025em] text-[#292b25]">Портфолио</h2>
+                <p className="mt-1 text-xs text-[#92948c]">Работы, которые видят посетители сайта</p>
+              </div>
+              <span className="rounded-full bg-[#f4f4f0] px-2.5 py-1 text-[11px] font-medium text-[#74766e]">{works.length} работ</span>
+            </div>
+
+            <form onSubmit={handleAddWork} className="mb-6 rounded-xl border border-dashed border-[#dcdcd5] bg-[#fafaf8] p-4 sm:p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-white text-lg text-[#a67b4e] shadow-sm">+</span>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Название работы
-                  </label>
+                  <h3 className="text-sm font-semibold text-[#3a3c35]">Добавить новую работу</h3>
+                  <p className="mt-0.5 text-[11px] text-[#999b94]">Загрузите фотографию проекта для портфолио</p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <label className="block text-xs font-medium text-[#55574f]">
+                  Название работы
                   <input
                     type="text"
                     value={newWork.title}
                     onChange={(e) => setNewWork({ ...newWork, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Например: Лепнина в гостиной"
+                    className="mt-1.5 w-full rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal text-[#34362f] outline-none transition focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15"
+                    placeholder="Например, лепнина в гостиной"
                     required
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Изображение работы
-                  </label>
+                </label>
+                <label className="block text-xs font-medium text-[#55574f]">
+                  Фотография
                   <input
                     id="work-image"
                     ref={imageInputRef}
                     type="file"
                     accept="image/*"
                     onChange={(e) => setSelectedImage(e.target.files?.[0] ?? null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="mt-1.5 block w-full cursor-pointer rounded-lg border border-[#e5e5df] bg-white text-xs text-[#777971] file:mr-3 file:border-0 file:bg-[#f4f4f0] file:px-3 file:py-2.5 file:text-xs file:font-medium file:text-[#55574f]"
                     required
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Выберите изображение на компьютере (до 20 МБ). Оно будет сохранено в папку public.
-                  </p>
-                </div>
+                </label>
               </div>
-              {workFormError && (
-                <p className="mb-4 text-sm text-red-600" role="alert">{workFormError}</p>
-              )}
-              <button
-                type="submit"
-                disabled={isAddingWork}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isAddingWork ? 'Загрузка...' : 'Добавить работу'}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[11px] text-[#999b94]">До 20 МБ · изображение сохранится в портфолио</p>
+                <button type="submit" disabled={isAddingWork} className="rounded-lg bg-[#292b25] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#41443b] disabled:cursor-not-allowed disabled:opacity-50">
+                  {isAddingWork ? 'Загружаем…' : 'Добавить работу'}
+                </button>
+              </div>
+              {workFormError && <p className="mt-3 text-xs text-[#a14d3c]" role="alert">{workFormError}</p>}
+            </form>
+
+            <div className="space-y-2">
+              {works.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[#e5e5df] px-4 py-10 text-center">
+                  <p className="text-sm font-medium text-[#64665e]">Пока нет работ</p>
+                  <p className="mt-1 text-xs text-[#999b94]">Добавьте первую фотографию выше</p>
+                </div>
+              ) : works.map((work) => (
+                <article key={work.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#efefec] p-3 transition-colors hover:bg-[#fcfcfa] sm:flex-nowrap">
+                  <div className="size-[58px] shrink-0 overflow-hidden rounded-lg bg-[#f1f1ed]">
+                    <Image src={work.src} alt={work.title} width={58} height={58} unoptimized className="size-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-medium text-[#383a35]">{work.title}</h4>
+                    <p className="mt-0.5 truncate text-[11px] text-[#999b94]">{work.src}</p>
+                    <span className={`mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-medium ${work.active ? 'text-[#5d855f]' : 'text-[#999b94]'}`}>
+                      <span className={`size-1.5 rounded-full ${work.active ? 'bg-[#78a279]' : 'bg-[#b8b9b3]'}`} />
+                      {work.active ? 'Опубликована' : 'Скрыта'}
+                    </span>
+                  </div>
+                  <div className="ml-auto flex shrink-0 gap-2">
+                    <button onClick={() => handleToggleWork(work)} className="rounded-lg border border-[#e9e9e5] px-3 py-2 text-[11px] font-medium text-[#65675f] transition-colors hover:bg-[#f4f4f0]">
+                      {work.active ? 'Скрыть' : 'Опубликовать'}
+                    </button>
+                    <button onClick={() => handleDeleteWork(work.id)} className="rounded-lg px-2.5 py-2 text-[11px] font-medium text-[#a14d3c] transition-colors hover:bg-[#fbf2ef]">
+                      Удалить
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="settings" className="h-fit rounded-2xl border border-[#e9e9e5] bg-white p-5 shadow-[0_2px_8px_rgba(27,30,22,0.025)] sm:p-6">
+            <div className="mb-5">
+              <h2 className="text-base font-semibold tracking-[-0.025em] text-[#292b25]">Данные компании</h2>
+              <p className="mt-1 text-xs text-[#92948c]">Контактная информация и описание</p>
+            </div>
+            <form onSubmit={handleUpdateConfig} className="space-y-4">
+              <label className="block text-xs font-medium text-[#55574f]">
+                Название компании
+                <input type="text" value={config.name} onChange={(e) => setConfig({ ...config, name: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal text-[#34362f] outline-none transition focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15" required />
+              </label>
+              <label className="block text-xs font-medium text-[#55574f]">
+                Телефон
+                <input type="tel" value={config.phone} onChange={(e) => setConfig({ ...config, phone: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal text-[#34362f] outline-none transition focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15" required />
+              </label>
+              <label className="block text-xs font-medium text-[#55574f]">
+                Email
+                <input type="email" value={config.email} onChange={(e) => setConfig({ ...config, email: e.target.value })} className="mt-1.5 w-full rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal text-[#34362f] outline-none transition focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15" required />
+              </label>
+              <label className="block text-xs font-medium text-[#55574f]">
+                Описание
+                <textarea value={config.description} onChange={(e) => setConfig({ ...config, description: e.target.value })} rows={4} className="mt-1.5 w-full resize-y rounded-lg border border-[#e5e5df] bg-white px-3 py-2.5 text-sm font-normal text-[#34362f] outline-none transition focus:border-[#ae8a63] focus:ring-2 focus:ring-[#ae8a63]/15" required />
+              </label>
+              <button type="submit" className="w-full rounded-lg bg-[#292b25] px-4 py-2.5 text-xs font-medium text-white transition-colors hover:bg-[#41443b] sm:w-auto">
+                Сохранить изменения
               </button>
             </form>
 
-            {/* Список работ */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Список работ ({works.length})</h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {works.map((work) => (
-                  <div
-                    key={work.id}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                        <Image
-                          src={work.src}
-                          alt={work.title}
-                          width={64}
-                          height={64}
-                          unoptimized
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{work.title}</h4>
-                        <p className="text-sm text-gray-500">{work.src}</p>
-                        <span className={`inline-block px-2 py-1 text-xs rounded ${
-                          work.active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {work.active ? 'Активна' : 'Скрыта'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleToggleWork(work)}
-                        className={`px-3 py-1 text-sm rounded ${
-                          work.active
-                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
-                        }`}
-                      >
-                        {work.active ? 'Скрыть' : 'Показать'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteWork(work.id)}
-                        className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
-                      >
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            <div className="mt-7 border-t border-[#efefec] pt-5">
+              <h3 className="text-xs font-semibold text-[#55574f]">Системная информация</h3>
+              <div className="mt-3 space-y-2.5 text-[11px] text-[#85877f]">
+                <p className="flex items-center justify-between gap-3"><span>Конфигурация</span><span className="font-medium text-[#5c5e56]">config.json</span></p>
+                <p className="flex items-center justify-between gap-3"><span>Портфолио</span><span className="font-medium text-[#5c5e56]">works.json</span></p>
+                <p className="flex items-center justify-between gap-3"><span>Публикация</span><span className="font-medium text-[#5d855f]">Мгновенно</span></p>
               </div>
             </div>
-          </div>
-
-          {/* Правая колонка: Настройки компании */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Настройки компании</h2>
-            
-            <form onSubmit={handleUpdateConfig}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Название компании
-                  </label>
-                  <input
-                    type="text"
-                    value={config.name}
-                    onChange={(e) => setConfig({ ...config, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Телефон
-                  </label>
-                  <input
-                    type="tel"
-                    value={config.phone}
-                    onChange={(e) => setConfig({ ...config, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={config.email}
-                    onChange={(e) => setConfig({ ...config, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Описание
-                  </label>
-                  <textarea
-                    value={config.description}
-                    onChange={(e) => setConfig({ ...config, description: e.target.value })}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                >
-                  Сохранить настройки
-                </button>
-              </div>
-            </form>
-
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Информация о системе</h3>
-              <div className="bg-gray-50 rounded-md p-4">
-                <p className="text-sm text-gray-600">
-                  • Логин и пароль хранятся в файле config.json<br/>
-                  • Работы сохраняются в файле works.json<br/>
-                  • Все изменения применяются мгновенно<br/>
-                  • Для изменения учетных данных отредактируйте config.json
-                </p>
-              </div>
-            </div>
-          </div>
+          </section>
         </div>
       </main>
-    </div>
+    </AdminShell>
   );
 }
