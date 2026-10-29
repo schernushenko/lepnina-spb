@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -37,6 +37,7 @@ export default function AdminPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [workFormError, setWorkFormError] = useState('');
   const [isAddingWork, setIsAddingWork] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const checkAuth = useCallback(async () => {
     try {
@@ -133,8 +134,7 @@ export default function AdminPage() {
       if (response.ok) {
         setNewWork({ title: '' });
         setSelectedImage(null);
-        const fileInput = document.getElementById('work-image') as HTMLInputElement | null;
-        if (fileInput) fileInput.value = '';
+        if (imageInputRef.current) imageInputRef.current.value = '';
         await loadWorks();
       } else {
         const data = await response.json();
@@ -263,6 +263,7 @@ export default function AdminPage() {
                   </label>
                   <input
                     id="work-image"
+                    ref={imageInputRef}
                     type="file"
                     accept="image/*"
                     onChange={(e) => setSelectedImage(e.target.files?.[0] ?? null)}

@@ -1,16 +1,63 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { NextRequest, NextResponse } from 'next/server';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 
-// Простые данные работ в памяти
-const worksData = Array.from({ length: 61 }).map((_, i) => ({
-  id: i + 1,
-  src: `/${i + 1}.jpg`,
-  title: `Работа №${i + 1}`,
-  active: true
-}));
+interface Work {
+  id: number;
+  src: string;
+  title: string;
+  active: boolean;
+  createdAt?: string;
+}
+
+const worksFilePath = path.join(process.cwd(), 'data', 'works.json');
+
+function createDefaultWorks(): Work[] {
+  return Array.from({ length: 61 }, (_, i) => ({
+    id: i + 1,
+    src: `/${i + 1}.jpg`,
+    title: `Работа №${i + 1}`,
+    active: true
+  }));
+}
+
+function isWork(value: unknown): value is Work {
+  if (!value || typeof value !== 'object') return false;
+  const work = value as Record<string, unknown>;
+
+  return (
+    Number.isInteger(work.id) &&
+    typeof work.src === 'string' &&
+    typeof work.title === 'string' &&
+    typeof work.active === 'boolean'
+  );
+}
+
+async function getWorksData(): Promise<Work[]> {
+  try {
+    const fileContents = await readFile(worksFilePath, 'utf8');
+    const data: unknown = JSON.parse(fileContents);
+
+    if (!Array.isArray(data) || !data.every(isWork)) {
+      throw new Error('Works data file has an invalid format');
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      return createDefaultWorks();
+    }
+
+    throw error;
+  }
+}
+
+async function saveWorksData(works: Work[]): Promise<void> {
+  await mkdir(path.dirname(worksFilePath), { recursive: true });
+  await writeFile(worksFilePath, JSON.stringify(works, null, 2), 'utf8');
+}
 
 const maxImageSize = 20 * 1024 * 1024;
 const maxImagePixels = 40_000_000;
@@ -26,6 +73,7 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const worksData = await getWorksData();
     // Для публичного доступа возвращаем только активные работы
     const isAuthenticated = request.cookies.get('admin_auth')?.value === 'true';
     
@@ -92,12 +140,12 @@ export async function POST(request: NextRequest) {
     }
 
     const imageBuffer = Buffer.from(await image.arrayBuffer());
-    let metadata: sharp.Metadata;
+    let metadata: Metadata;
+    let storedImageBuffer: Buffer;
     try {
       metadata = await sharp(imageBuffer, { limitInputPixels: maxImagePixels }).metadata();
       if (
         !metadata.format ||
-        !imageExtensions[metadata.format] ||
         !metadata.width ||
         !metadata.height ||
         metadata.width * metadata.height > maxImagePixels
@@ -109,6 +157,9 @@ export async function POST(request: NextRequest) {
       }
 
       await sharp(imageBuffer, { limitInputPixels: maxImagePixels }).stats();
+      storedImageBuffer = imageExtensions[metadata.format]
+        ? imageBuffer
+        : await sharp(imageBuffer, { limitInputPixels: maxImagePixels }).webp().toBuffer();
     } catch (error) {
       console.error('Validate uploaded work image error:', error);
       return NextResponse.json(
@@ -117,23 +168,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = `work-${randomUUID()}.${imageExtensions[metadata.format]}`;
+    const worksData = await getWorksData();
+    const maxId = worksData.reduce((max, work) => Math.max(max, work.id), 0);
+    const extension = imageExtensions[metadata.format] ?? 'webp';
+    const filename = `work-${randomUUID()}.${extension}`;
     const publicDirectory = path.resolve(process.cwd(), 'public');
     await mkdir(publicDirectory, { recursive: true });
-    await writeFile(path.join(publicDirectory, filename), imageBuffer, { flag: 'wx' });
+    const imagePath = path.join(publicDirectory, filename);
+    await writeFile(imagePath, storedImageBuffer, { flag: 'wx' });
 
-    // Находим максимальный ID
-    const maxId = worksData.reduce((max, work) => Math.max(max, work.id), 0);
-    
     const workToAdd = {
       id: maxId + 1,
       title: title.trim(),
-      src: `/${filename}`,
+      src: `/uploads/${filename}`,
       active: true,
       createdAt: new Date().toISOString()
     };
 
     worksData.push(workToAdd);
+    try {
+      await saveWorksData(worksData);
+    } catch (error) {
+      try {
+        await unlink(imagePath);
+      } catch (cleanupError) {
+        console.error('Remove orphaned work image error:', cleanupError);
+      }
+      throw error;
+    }
 
     return NextResponse.json(
       { success: true, work: workToAdd },
@@ -167,6 +229,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const worksData = await getWorksData();
     const workIndex = worksData.findIndex((work) => work.id === updates.id);
 
     if (workIndex === -1) {
@@ -188,6 +251,7 @@ export async function PUT(request: NextRequest) {
     }
 
     worksData[workIndex] = { ...worksData[workIndex], ...updates };
+    await saveWorksData(worksData);
 
     return NextResponse.json({ success: true, work: worksData[workIndex] });
   } catch (error) {
@@ -220,6 +284,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const worksData = await getWorksData();
     const workIndex = worksData.findIndex((work) => work.id === id);
 
     if (workIndex === -1) {
@@ -230,6 +295,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     worksData.splice(workIndex, 1);
+    await saveWorksData(worksData);
 
     return NextResponse.json({ success: true });
   } catch (error) {
