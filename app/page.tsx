@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import OrderForm from './components/OrderForm';
@@ -78,9 +78,26 @@ export default function Home() {
   const [config, setConfig] = useState<CompanyConfig>(initialConfig);
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [canScrollProjectsBack, setCanScrollProjectsBack] = useState(false);
+  const [canScrollProjectsForward, setCanScrollProjectsForward] = useState(false);
+  const projectsTrackRef = useRef<HTMLDivElement>(null);
 
   const activeWorks = useMemo(() => works.filter((work) => work.active), [works]);
-  const featuredWorks = activeWorks.slice(0, 3);
+
+  const updateProjectScrollState = useCallback(() => {
+    const track = projectsTrackRef.current;
+    if (!track) return;
+    setCanScrollProjectsBack(track.scrollLeft > 1);
+    setCanScrollProjectsForward(track.scrollLeft + track.clientWidth < track.scrollWidth - 1);
+  }, []);
+
+  const scrollProjects = (direction: -1 | 1) => {
+    const track = projectsTrackRef.current;
+    const firstCard = track?.firstElementChild;
+    if (!track || !(firstCard instanceof HTMLElement)) return;
+    const gap = Number.parseFloat(window.getComputedStyle(track).columnGap) || 0;
+    track.scrollBy({ left: direction * (firstCard.getBoundingClientRect().width + gap), behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const loadSiteData = async () => {
@@ -111,6 +128,21 @@ export default function Home() {
 
     void loadSiteData();
   }, []);
+
+  useEffect(() => {
+    const track = projectsTrackRef.current;
+    if (!track) return;
+
+    updateProjectScrollState();
+    track.addEventListener('scroll', updateProjectScrollState, { passive: true });
+    const resizeObserver = new ResizeObserver(updateProjectScrollState);
+    resizeObserver.observe(track);
+
+    return () => {
+      track.removeEventListener('scroll', updateProjectScrollState);
+      resizeObserver.disconnect();
+    };
+  }, [activeWorks.length, updateProjectScrollState]);
 
   const closeLightbox = useCallback(() => setIsOpen(false), []);
   const goToNext = useCallback(
@@ -209,21 +241,14 @@ export default function Home() {
                 className="site-hero-image object-cover object-[50%_46%]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#171713]/40 via-transparent to-[#171713]/5" />
-              <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white sm:p-7">
-                <div>
-                  <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-white/75">Красота — в деталях</p>
-                  <p className="mt-1.5 font-cinzel text-lg tracking-[0.025em]">Традиции формы</p>
-                </div>
-                <span className="font-cinzel text-xs tracking-[0.16em] text-white/70">01 / 03</span>
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
+                <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-white/75">Красота — в деталях</p>
+                <p className="mt-2 font-cinzel text-xl tracking-[0.025em] sm:text-2xl">Традиции формы</p>
               </div>
             </div>
             <div className="site-hero-image-back absolute bottom-[7%] left-0 -z-10 h-[66%] w-[38%] rounded-t-[46%] rounded-b-[7px] border border-[#bca47f]/60" />
             <div className="site-hero-seal absolute -left-2 top-[13%] flex size-[92px] items-center justify-center rounded-full bg-[#f7f5f0] p-2 text-[#a48966] shadow-[0_8px_28px_rgba(54,48,37,0.12)] sm:left-0 sm:size-[112px] sm:p-3">
               <DecorativeMark />
-            </div>
-            <div className="site-hero-caption absolute -bottom-5 left-[3%] rounded-xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_8px_30px_rgba(46,41,31,0.09)] backdrop-blur-md sm:bottom-5 sm:left-[-5%] sm:px-5 sm:py-4">
-              <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-[#a0815c]">Искусство гипса</p>
-              <p className="mt-1 text-xs font-medium text-[#3d3d36] sm:text-sm">Создано на века</p>
             </div>
             <span className="site-hero-vertical absolute right-[-16px] top-[35%] hidden [writing-mode:vertical-rl] text-[9px] font-medium uppercase tracking-[0.2em] text-[#8e897e] xl:block">
               ЭСТЕТИКА · МАСТЕРСТВО · ВРЕМЯ
@@ -286,27 +311,28 @@ export default function Home() {
             </div>
           </div>
 
-          {featuredWorks.length === 0 ? (
+          {activeWorks.length === 0 ? (
             <p className="rounded-2xl border border-[#e7e1d7] bg-white/70 px-6 py-14 text-center text-sm text-[#77756d]">Скоро здесь появятся новые проекты.</p>
           ) : (
-            <div className="site-project-grid grid gap-5 md:grid-cols-2 lg:grid-cols-12 lg:gap-6">
-              {featuredWorks.map((work, index) => (
+            <div
+              ref={projectsTrackRef}
+              className="site-project-track"
+              aria-label="Галерея проектов"
+              onScroll={updateProjectScrollState}
+            >
+              {activeWorks.map((work, index) => (
                 <button
                   type="button"
                   key={work.id}
                   onClick={() => openLightbox(work)}
                   aria-label={`Открыть фотографию проекта: ${work.title}`}
-                  className={`site-project-card group relative block w-full overflow-hidden rounded-2xl bg-[#e6e1d8] text-left ${
-                    index === 0 ? 'h-[340px] sm:h-[440px] lg:col-span-7 lg:h-[520px]' :
-                    index === 1 ? 'h-[340px] sm:h-[440px] lg:col-span-5 lg:mt-16 lg:h-[390px]' :
-                    'h-[340px] sm:h-[420px] lg:col-span-5 lg:-mt-20 lg:h-[390px]'
-                  }`}
+                  className="site-project-card group relative block h-[330px] w-full overflow-hidden rounded-2xl bg-[#e6e1d8] text-left sm:h-[400px] lg:h-[460px]"
                 >
                   <Image
                     src={work.src}
                     alt={work.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 58vw"
+                    sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 30vw"
                     className="site-project-image object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
                     priority={index === 0}
                   />
@@ -332,10 +358,32 @@ export default function Home() {
 
           <div className="site-portfolio-footer mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#e5ded2] pt-5">
             <p className="text-[10px] uppercase tracking-[0.12em] text-[#969287]">От эскиза до завершённого интерьера</p>
-            <Link href="/portfolio" className="inline-flex items-center gap-2 rounded-full border border-[#ded7cb] px-4 py-2.5 text-[11px] font-medium text-[#55554e] transition-colors hover:border-[#b8a17e] hover:bg-white/70">
-              Смотреть галерею
-              <ArrowIcon className="size-3.5" />
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => scrollProjects(-1)}
+                disabled={!canScrollProjectsBack}
+                aria-label="Прокрутить проекты назад"
+                className="site-carousel-control flex size-10 items-center justify-center rounded-full border border-[#ded7cb] text-[#55554e] transition-colors hover:border-[#b8a17e] hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="size-4">
+                  <path d="M16 10H4m5 5-5-5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProjects(1)}
+                disabled={!canScrollProjectsForward}
+                aria-label="Прокрутить проекты вперёд"
+                className="site-carousel-control flex size-10 items-center justify-center rounded-full border border-[#ded7cb] text-[#55554e] transition-colors hover:border-[#b8a17e] hover:bg-white/70 disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <ArrowIcon />
+              </button>
+              <Link href="/portfolio" className="inline-flex items-center gap-2 rounded-full border border-[#ded7cb] px-4 py-2.5 text-[11px] font-medium text-[#55554e] transition-colors hover:border-[#b8a17e] hover:bg-white/70">
+                Смотреть галерею
+                <ArrowIcon className="size-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

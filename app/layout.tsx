@@ -16,7 +16,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Эллада.Декор — гипсовая лепнина для вашего интерьера',
+  title: 'Эйдос — образ, форма, идея | Гипсовая лепнина',
+  applicationName: 'Эйдос',
   description: 'Лепной декор ручной работы в Санкт-Петербурге. Индивидуальный подбор, изготовление, замер и монтаж.',
 };
 
@@ -36,15 +37,15 @@ export default function RootLayout({
         <footer className="site-footer">
           <div className="mx-auto grid max-w-[1440px] gap-8 px-5 py-10 sm:px-8 md:grid-cols-[1fr_auto] md:items-end lg:px-12 lg:py-12">
             <div>
-              <Link href="/" className="inline-flex items-center gap-3" aria-label="Эллада Декор — на главную">
+              <Link href="/" className="inline-flex items-center gap-3" aria-label="Эйдос — на главную">
                 <span className="flex size-9 items-center justify-center rounded-full border border-white/20 text-[#d0b38b]">
                   <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" className="size-5">
                     <path d="M5 26V15.5C5 9.7 9.7 5 15.5 5S26 9.7 26 15.5V26M3 26h26M10 26v-5h12v5M9 15h14" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
                   </svg>
                 </span>
                 <span>
-                  <span className="block font-cinzel text-xs font-semibold tracking-[0.12em]">ЭЛЛАДА.ДЕКОР</span>
-                  <span className="mt-1 block text-[9px] uppercase tracking-[0.18em] text-white/45">Гипсовая лепнина</span>
+                  <span className="block font-cinzel text-xs font-semibold tracking-[0.12em]">ЭЙДОС</span>
+                  <span className="mt-1 block text-[9px] tracking-[0.06em] text-white/45">εἶδος · образ, форма, идея</span>
                 </span>
               </Link>
               <p className="mt-4 max-w-md text-xs leading-5 text-white/50">Создаём детали, которые превращают интерьер в историю.</p>
@@ -56,7 +57,7 @@ export default function RootLayout({
               <Link href="/admin">Вход для сотрудников</Link>
               <Link href="/debug">Диагностика</Link>
             </div>
-            <p className="border-t border-white/10 pt-4 text-[10px] text-white/35 md:col-span-2">© 2026 Эллада.Декор · Гипсовая лепнина ручной работы</p>
+            <p className="border-t border-white/10 pt-4 text-[10px] text-white/35 md:col-span-2">© 2026 Эйдос · Гипсовая лепнина ручной работы</p>
           </div>
         </footer>
       </body>

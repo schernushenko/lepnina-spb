@@ -49,7 +49,7 @@ export default function AdminShell({ active, title, description, children }: Adm
             </svg>
           </span>
           <span className="leading-tight">
-            <span className="block text-[15px] font-semibold tracking-[-0.03em]">Эллада.Декор</span>
+            <span className="block text-[15px] font-semibold tracking-[-0.03em]">Эйдос</span>
             <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.16em] text-[#999b94]">Панель управления</span>
           </span>
         </Link>
@@ -103,7 +103,7 @@ export default function AdminShell({ active, title, description, children }: Adm
         <header className="admin-topbar sticky top-0 z-20 flex min-h-[76px] items-center justify-between border-b border-[#e9e9e5] bg-white/90 px-5 backdrop-blur-md sm:px-8 lg:px-10">
           <div className="min-w-0">
             <div className="mb-1 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.13em] text-[#a0a19a]">
-              <span className="lg:hidden">Эллада.Декор</span>
+              <span className="lg:hidden">Эйдос</span>
               <span className="hidden lg:inline">Рабочее пространство</span>
               <span>/</span>
               <span className="truncate text-[#72746d]">{active === 'dashboard' ? 'Обзор' : 'Калькулятор'}</span>

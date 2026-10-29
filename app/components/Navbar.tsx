@@ -16,7 +16,7 @@ export default function Navbar() {
   return (
     <header className="site-header sticky top-0 z-40 border-b border-[#e8e2d8]/80 bg-[#f7f5f0]/90 backdrop-blur-xl">
       <nav aria-label="Главная навигация" className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link href="/" className="group flex shrink-0 items-center gap-3" aria-label="Эллада Декор — на главную">
+        <Link href="/" className="group flex shrink-0 items-center gap-3" aria-label="Эйдос — на главную">
           <span className="site-mark flex size-10 items-center justify-center rounded-full border border-[#bd9a70]/40 bg-white/70 text-[#96734d] transition-colors group-hover:bg-[#252720] group-hover:text-white">
             <svg aria-hidden="true" viewBox="0 0 32 32" fill="none" className="size-6">
               <path d="M5 26V15.5C5 9.7 9.7 5 15.5 5S26 9.7 26 15.5V26M3 26h26M10 26v-5h12v5M9 15h14" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
@@ -24,8 +24,8 @@ export default function Navbar() {
             </svg>
           </span>
           <span className="leading-none">
-            <span className="block font-cinzel text-[15px] font-bold tracking-[0.1em] text-[#292b25]">ЭЛЛАДА</span>
-            <span className="mt-1.5 block text-[9px] font-medium uppercase tracking-[0.28em] text-[#929087]">декор из гипса</span>
+            <span className="block font-cinzel text-[15px] font-bold tracking-[0.1em] text-[#292b25]">ЭЙДОС</span>
+            <span className="mt-1.5 block text-[9px] font-medium tracking-[0.08em] text-[#929087]">εἶδος · образ, форма, идея</span>
           </span>
         </Link>
 

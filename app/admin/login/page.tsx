@@ -48,7 +48,7 @@ export default function LoginPage() {
               <path d="M4 20V9l8-5 8 5v11M8 20v-6h8v6M2 20h20" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <span className="text-sm font-semibold tracking-[-0.02em]">Эллада.Декор</span>
+          <span className="text-sm font-semibold tracking-[-0.02em]">Эйдос</span>
         </div>
         <div className="relative max-w-lg">
           <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#c2a987]">Пространство управления</p>
@@ -59,7 +59,7 @@ export default function LoginPage() {
             Управляйте проектами, каталогом и обращениями клиентов в одном месте.
           </p>
         </div>
-        <p className="relative text-[11px] text-white/35">© 2026 Эллада.Декор · Панель управления</p>
+        <p className="relative text-[11px] text-white/35">© 2026 Эйдос · Панель управления</p>
       </aside>
 
       <main className="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
@@ -71,7 +71,7 @@ export default function LoginPage() {
                   <path d="M4 20V9l8-5 8 5v11M8 20v-6h8v6M2 20h20" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
-              <span className="text-sm font-semibold">Эллада.Декор</span>
+              <span className="text-sm font-semibold">Эйдос</span>
             </div>
           </div>
           <div className="mb-7">
@@ -134,7 +134,7 @@ export default function LoginPage() {
             </p>
           </form>
 
-          <p className="mt-6 text-center text-[11px] text-[#a3a49e]">© 2026 Эллада.Декор</p>
+          <p className="mt-6 text-center text-[11px] text-[#a3a49e]">© 2026 Эйдос</p>
         </div>
       </main>
     </div>

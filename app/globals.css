@@ -52,6 +52,31 @@ body {
   transform: scale(1.025);
 }
 
+.site-project-track {
+  display: grid;
+  grid-auto-columns: 100%;
+  grid-auto-flow: column;
+  gap: 1.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 2px 2px 1rem;
+  scroll-behavior: smooth;
+  scroll-padding-inline: 2px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.site-project-track::-webkit-scrollbar {
+  display: none;
+}
+
+.site-project-track > .site-project-card {
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 .site-project-card {
   box-shadow: 0 12px 35px rgb(46 41 31 / 7%);
 }
@@ -183,6 +208,18 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .site-project-track {
+    grid-auto-columns: calc((100% - 1.25rem) / 2);
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-project-track {
+    grid-auto-columns: calc((100% - 2.5rem) / 3);
   }
 }
 
