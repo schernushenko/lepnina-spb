@@ -13,6 +13,7 @@ interface Work {
 }
 
 const worksFilePath = path.join(process.cwd(), 'data', 'works.json');
+const uploadsDirectory = path.resolve(process.cwd(), 'public', 'uploads');
 
 function createDefaultWorks(): Work[] {
   return Array.from({ length: 61 }, (_, i) => ({
@@ -74,15 +75,13 @@ export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
   try {
     const worksData = await getWorksData();
-    // Для публичного доступа возвращаем только активные работы
     const isAuthenticated = request.cookies.get('admin_auth')?.value === 'true';
-    
+
     if (!isAuthenticated) {
       const activeWorks = worksData.filter(work => work.active);
       return NextResponse.json(activeWorks);
     }
 
-    // Для админа возвращаем все работы
     return NextResponse.json(worksData);
   } catch (error) {
     console.error('Get works error:', error);
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const isAuthenticated = request.cookies.get('admin_auth')?.value === 'true';
-    
+
     if (!isAuthenticated) {
       return NextResponse.json(
         { error: 'Не авторизован' },
@@ -172,9 +171,9 @@ export async function POST(request: NextRequest) {
     const maxId = worksData.reduce((max, work) => Math.max(max, work.id), 0);
     const extension = imageExtensions[metadata.format] ?? 'webp';
     const filename = `work-${randomUUID()}.${extension}`;
-    const publicDirectory = path.resolve(process.cwd(), 'public');
-    await mkdir(publicDirectory, { recursive: true });
-    const imagePath = path.join(publicDirectory, filename);
+
+    await mkdir(uploadsDirectory, { recursive: true });
+    const imagePath = path.join(uploadsDirectory, filename);
     await writeFile(imagePath, storedImageBuffer, { flag: 'wx' });
 
     const workToAdd = {
@@ -294,7 +293,13 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    worksData.splice(workIndex, 1);
+    const [removedWork] = worksData.splice(workIndex, 1);
+    if (removedWork?.src.startsWith('/uploads/')) {
+      const filename = removedWork.src.replace(/^\/uploads\//, '');
+      const filePath = path.join(uploadsDirectory, filename);
+      await unlink(filePath).catch(() => undefined);
+    }
+
     await saveWorksData(worksData);
 
     return NextResponse.json({ success: true });
