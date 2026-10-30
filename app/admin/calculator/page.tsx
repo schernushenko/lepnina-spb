@@ -76,13 +76,9 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
-function buildUniqueProductSlug(value: string, currentId: string | undefined, products: Product[] = []): string {
-  const base = slugify(value) || 'product';
-  const used = new Set(
-    products
-      .filter((product) => product.id !== currentId)
-      .map((product) => product.slug)
-  );
+function buildUniqueSlug(value: string, currentId: string | undefined, items: Array<{ id: string; slug: string }>): string {
+  const base = slugify(value) || 'item';
+  const used = new Set(items.filter((item) => item.id !== currentId).map((item) => item.slug));
 
   let slug = base;
   let counter = 2;
@@ -91,6 +87,10 @@ function buildUniqueProductSlug(value: string, currentId: string | undefined, pr
     counter += 1;
   }
   return slug;
+}
+
+function buildUniqueProductSlug(value: string, currentId: string | undefined, products: Product[] = []): string {
+  return buildUniqueSlug(value, currentId, products.map((product) => ({ id: product.id, slug: product.slug })));
 }
 
 function toMilli(value: string): number | null {
@@ -135,7 +135,12 @@ export default function CalculatorAdminPage() {
     [data]
   );
 
-  const generateUniqueProductSlug = useCallback(
+  const buildUniqueCategorySlug = useCallback(
+    (value: string, currentId?: string) => buildUniqueSlug(value, currentId, data?.categories.map((category) => ({ id: category.id, slug: category.slug })) ?? []),
+    [data]
+  );
+
+  const buildUniqueProductSlug = useCallback(
     (value: string, currentId?: string) => buildUniqueProductSlug(value, currentId, data?.products ?? []),
     [data]
   );
@@ -208,7 +213,7 @@ export default function CalculatorAdminPage() {
     event.preventDefault();
     const payload = {
       name: categoryForm.name,
-      slug: categoryForm.slug || slugify(categoryForm.name),
+      slug: categoryForm.slug || buildUniqueCategorySlug(categoryForm.name, categoryForm.id || undefined),
       sortOrder: Number(categoryForm.sortOrder),
       active: categoryForm.active
     };
@@ -364,7 +369,7 @@ export default function CalculatorAdminPage() {
       setError('Проверьте минимальное количество и шаг.');
       return;
     }
-    const resolvedSlug = generateUniqueProductSlug(productForm.slug || productForm.name, productForm.id || undefined);
+    const resolvedSlug = buildUniqueProductSlug(productForm.slug || productForm.name, productForm.id || undefined, data?.products ?? []);
     const payload = {
       id: productForm.id,
       name: productForm.name,
@@ -595,7 +600,7 @@ export default function CalculatorAdminPage() {
             </section>
             <form onSubmit={saveCategory} className="h-fit space-y-3 rounded bg-white p-5 shadow">
               <h2 className="text-xl font-semibold">{categoryForm.id ? 'Изменить категорию' : 'Новая категория'}</h2>
-              <input required placeholder="Название" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value, slug: categoryForm.slug || slugify(event.target.value) })} className="w-full rounded border p-2" />
+              <input required placeholder="Название" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value, slug: categoryForm.slug || buildUniqueCategorySlug(event.target.value, categoryForm.id || undefined) })} className="w-full rounded border p-2" />
               <input required placeholder="Slug" value={categoryForm.slug} onChange={(event) => setCategoryForm({ ...categoryForm, slug: event.target.value })} className="w-full rounded border p-2" />
               <label className="flex gap-2"><input type="checkbox" checked={categoryForm.active} onChange={(event) => setCategoryForm({ ...categoryForm, active: event.target.checked })} />Активна</label>
               <button disabled={busy} className="rounded bg-blue-700 px-4 py-2 text-white">Сохранить</button>
@@ -640,7 +645,7 @@ export default function CalculatorAdminPage() {
                   setProductForm((current) => ({
                     ...current,
                     name: nextName,
-                    slug: generateUniqueProductSlug(nextName, current.id || undefined)
+                    slug: buildUniqueProductSlug(nextName, current.id || undefined, data?.products ?? [])
                   }));
                 }} className="rounded border p-2" />
                 <input required placeholder="Slug" aria-label="Slug изделия" value={productForm.slug} onChange={(event) => setProductForm((current) => ({ ...current, slug: event.target.value }))} className="rounded border p-2" />
