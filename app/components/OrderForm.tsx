@@ -100,6 +100,7 @@ export default function OrderForm() {
   const [cart, setCart] = useState<CalculatorCart>(emptyCart);
   const [cartReady, setCartReady] = useState(false);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
   const [priceFrom, setPriceFrom] = useState('');
   const [priceTo, setPriceTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -189,8 +190,10 @@ export default function OrderForm() {
   const visibleProducts = useMemo(() => {
     const minimumPrice = priceFrom === '' ? null : Math.round(Number(priceFrom) * 100);
     const maximumPrice = priceTo === '' ? null : Math.round(Number(priceTo) * 100);
+    const normalizedSearch = search.trim().toLocaleLowerCase('ru');
     return activeProducts.filter((product) => {
       if (selectedCategoryIds.length > 0 && !selectedCategoryIds.includes(product.categoryId ?? '')) return false;
+      if (normalizedSearch && !`${product.name} ${product.description}`.toLocaleLowerCase('ru').includes(normalizedSearch)) return false;
       if (minimumPrice === null && maximumPrice === null) return true;
       if (product.priceType === 'request') return false;
 
@@ -204,16 +207,17 @@ export default function OrderForm() {
         (maximumPrice === null || price <= maximumPrice)
       );
     });
-  }, [activeProducts, priceFrom, priceTo, selectedCategoryIds]);
+  }, [activeProducts, priceFrom, priceTo, search, selectedCategoryIds]);
   const pageCount = Math.ceil(visibleProducts.length / productsPerPage);
   const pageProducts = visibleProducts.slice(
     (currentPage - 1) * productsPerPage,
     currentPage * productsPerPage
   );
   const invalidPriceRange = priceFrom !== '' && priceTo !== '' && Number(priceFrom) > Number(priceTo);
-  const filtersAreActive = selectedCategoryIds.length > 0 || priceFrom !== '' || priceTo !== '';
+  const filtersAreActive = selectedCategoryIds.length > 0 || search !== '' || priceFrom !== '' || priceTo !== '';
   const resetFilters = () => {
     setSelectedCategoryIds([]);
+    setSearch('');
     setPriceFrom('');
     setPriceTo('');
     setCurrentPage(1);
@@ -447,6 +451,14 @@ export default function OrderForm() {
           {data.settings.email && <a className="mr-4 underline" href={`mailto:${data.settings.email}`}>{data.settings.email}</a>}
           {data.settings.address}
         </p>
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }}
+          placeholder="Найти элемент..."
+          aria-label="Найти элемент"
+          className="mt-6 w-full rounded border border-[#b38b5d]/40 bg-white px-4 py-3"
+        />
       </section>
 
       <section aria-label="Каталог изделий" className="grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
