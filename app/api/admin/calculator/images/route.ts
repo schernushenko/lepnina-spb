@@ -24,9 +24,17 @@ export async function POST(request: NextRequest) {
   const savedPaths: string[] = [];
   try {
     const formData = await request.formData();
+    const requestedKind = formData.get('kind');
+    if (requestedKind !== null && requestedKind !== 'product' && requestedKind !== 'category') {
+      return NextResponse.json({ error: 'Некорректный тип изображения' }, { status: 400 });
+    }
+    const kind = requestedKind === 'category' ? 'category' : 'product';
     const files = formData.getAll('images').filter((file): file is File => file instanceof File);
-    if (!files.length || files.length > 10) {
-      return NextResponse.json({ error: 'Выберите от 1 до 10 изображений' }, { status: 400 });
+    if (!files.length || files.length > (kind === 'category' ? 1 : 10)) {
+      return NextResponse.json(
+        { error: kind === 'category' ? 'Выберите одно изображение категории' : 'Выберите от 1 до 10 изображений' },
+        { status: 400 }
+      );
     }
 
     const publicDirectory = path.resolve(process.cwd(), 'public');
@@ -48,7 +56,7 @@ export async function POST(request: NextRequest) {
       const output = imageExtensions[metadata.format]
         ? buffer
         : await sharp(buffer, { limitInputPixels: maxImagePixels }).webp().toBuffer();
-      const filename = `product-${randomUUID()}.${extension}`;
+      const filename = `${kind}-${randomUUID()}.${extension}`;
       const destination = path.join(publicDirectory, filename);
       await writeFile(destination, output, { flag: 'wx' });
       savedPaths.push(destination);
@@ -76,8 +84,8 @@ export async function DELETE(request: NextRequest) {
   try {
     const { image } = await request.json() as { image?: unknown };
     if (typeof image !== 'string') return NextResponse.json({ error: 'Некорректное изображение' }, { status: 400 });
-    const match = /^\/uploads\/(product-[0-9a-f-]+\.(?:jpg|png|webp|gif|avif))$/i.exec(image);
-    if (!match) return NextResponse.json({ error: 'Можно удалить только загруженное изображение товара' }, { status: 400 });
+    const match = /^\/uploads\/((?:product|category)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:jpg|png|webp|gif|avif))$/i.exec(image);
+    if (!match) return NextResponse.json({ error: 'Можно удалить только загруженное изображение калькулятора' }, { status: 400 });
 
     const imagePath = path.resolve(process.cwd(), 'public', match[1]);
     if (path.dirname(imagePath) !== path.resolve(process.cwd(), 'public')) {

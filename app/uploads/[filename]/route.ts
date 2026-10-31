@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ filename: string }> }
 ) {
   const { filename } = await params;
-  const match = /^(?:work|product)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp|gif|avif)$/i.exec(filename);
+  const match = /^(?:work|product|category)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp|gif|avif)$/i.exec(filename);
 
   if (!match) {
     return NextResponse.json({ error: 'Изображение не найдено' }, { status: 404 });

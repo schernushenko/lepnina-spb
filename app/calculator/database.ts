@@ -33,6 +33,7 @@ database.exec(`
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
+    image TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
     active INTEGER NOT NULL DEFAULT 1
   );
@@ -87,6 +88,13 @@ database.exec(`
     telegram_sent INTEGER NOT NULL DEFAULT 0
   );
 `);
+
+const categoryColumns = new Set(
+  (database.pragma('table_info(calculator_categories)') as Array<{ name: string }>).map((column) => column.name)
+);
+if (!categoryColumns.has('image')) {
+  database.exec("ALTER TABLE calculator_categories ADD COLUMN image TEXT NOT NULL DEFAULT ''");
+}
 
 const countCategories = database.prepare('SELECT COUNT(*) AS count FROM calculator_categories').get() as { count: number };
 if (countCategories.count === 0) {
@@ -152,10 +160,10 @@ function parseJson<T>(value: string): T {
 export function getCalculatorData(includeInactive = false): CalculatorData {
   const activeFilter = includeInactive ? '' : ' WHERE active = 1';
   const categories = database.prepare(
-    `SELECT id, name, slug, sort_order AS sortOrder, active FROM calculator_categories${activeFilter} ORDER BY sort_order, name`
+    `SELECT id, name, slug, image, sort_order AS sortOrder, active FROM calculator_categories${activeFilter} ORDER BY sort_order, name`
   ).all().map((row) => {
-    const item = row as Omit<Category, 'active'> & { active: number };
-    return { ...item, active: Boolean(item.active) };
+    const item = row as Omit<Category, 'active' | 'image'> & { active: number; image: string };
+    return { ...item, image: item.image || null, active: Boolean(item.active) };
   });
 
   const products = database.prepare(`

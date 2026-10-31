@@ -56,9 +56,15 @@ function normalizeResourceBody(resource: Resource, value: unknown): Record<strin
   if (!isRecord(value)) throw new Error('Некорректные данные');
 
   if (resource === 'categories') {
+    const image = value.image;
+    if (image !== undefined && image !== null && image !== '' &&
+      (typeof image !== 'string' || !/^\/uploads\/category-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:jpg|png|webp|gif|avif)$/i.test(image))) {
+      throw new Error('Некорректное изображение категории');
+    }
     return {
       name: requiredText(value.name, 'Название'),
       slug: requiredText(value.slug, 'Slug', 120),
+      image: typeof image === 'string' ? image : '',
       sortOrder: nonNegativeInteger(value.sortOrder ?? 0, 'Порядок'),
       active: value.active === false ? 0 : 1
     };
@@ -141,7 +147,7 @@ const resourceTables: Record<Exclude<Resource, 'settings'>, {
 }> = {
   categories: {
     table: 'calculator_categories',
-    columns: { name: 'name', slug: 'slug', sortOrder: 'sort_order', active: 'active' }
+    columns: { name: 'name', slug: 'slug', image: 'image', sortOrder: 'sort_order', active: 'active' }
   },
   products: {
     table: 'calculator_products',

@@ -95,7 +95,8 @@ export default function CalculatorAdminPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [categoryForm, setCategoryForm] = useState({ id: '', name: '', slug: '', sortOrder: '0', active: true });
+  const [categoryForm, setCategoryForm] = useState({ id: '', name: '', slug: '', image: '', sortOrder: '0', active: true });
+  const [uploadedCategoryImage, setUploadedCategoryImage] = useState('');
   const [productForm, setProductForm] = useState<ProductEditor>(initialProduct);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [serviceForm, setServiceForm] = useState({
@@ -187,12 +188,120 @@ export default function CalculatorAdminPage() {
     const payload = {
       name: categoryForm.name,
       slug: categoryForm.slug || slugify(categoryForm.name),
+      image: categoryForm.image,
       sortOrder: Number(categoryForm.sortOrder),
       active: categoryForm.active
     };
     const result = await mutate('categories', categoryForm.id ? 'PATCH' : 'POST',
       categoryForm.id ? { ...payload, id: categoryForm.id } : payload);
-    if (result) setCategoryForm({ id: '', name: '', slug: '', sortOrder: '0', active: true });
+    if (result) {
+      setCategoryForm({ id: '', name: '', slug: '', image: '', sortOrder: '0', active: true });
+      setUploadedCategoryImage('');
+    }
+  };
+
+  const uploadCategoryImage = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('kind', 'category');
+      formData.append('images', file);
+      const response = await fetch('/api/admin/calculator/images', { method: 'POST', body: formData });
+      const result = await response.json() as { images?: string[]; error?: string };
+      if (!response.ok || !result.images?.[0]) throw new Error(result.error || 'Не удалось загрузить изображение');
+      const newImage = result.images[0];
+      if (uploadedCategoryImage) {
+        try {
+          const deleteResponse = await fetch('/api/admin/calculator/images', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: uploadedCategoryImage })
+          });
+          if (!deleteResponse.ok) throw new Error('Не удалось удалить предыдущее загруженное изображение');
+        } catch (deleteError) {
+          try {
+            const cleanupResponse = await fetch('/api/admin/calculator/images', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: newImage })
+            });
+            if (!cleanupResponse.ok) throw new Error('Не удалось удалить временный файл');
+          } catch (cleanupError) {
+            throw new Error(`${deleteError instanceof Error ? deleteError.message : String(deleteError)}. ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+          }
+          throw deleteError;
+        }
+      }
+      setCategoryForm((current) => ({ ...current, image: newImage }));
+      setUploadedCategoryImage(newImage);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : String(uploadError));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeCategoryImage = async () => {
+    if (uploadedCategoryImage) {
+      try {
+        const response = await fetch('/api/admin/calculator/images', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: uploadedCategoryImage })
+        });
+        if (!response.ok) throw new Error('Не удалось удалить загруженное изображение');
+      } catch (removeError) {
+        setError(removeError instanceof Error ? removeError.message : String(removeError));
+        return;
+      }
+    }
+    setCategoryForm((current) => ({ ...current, image: '' }));
+    setUploadedCategoryImage('');
+  };
+
+  const resetCategoryForm = async () => {
+    if (uploadedCategoryImage) {
+      try {
+        const response = await fetch('/api/admin/calculator/images', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: uploadedCategoryImage })
+        });
+        if (!response.ok) throw new Error('Не удалось удалить несохранённое изображение');
+      } catch (resetError) {
+        setError(resetError instanceof Error ? resetError.message : String(resetError));
+        return;
+      }
+    }
+    setCategoryForm({ id: '', name: '', slug: '', image: '', sortOrder: '0', active: true });
+    setUploadedCategoryImage('');
+  };
+
+  const editCategory = async (category: Category) => {
+    if (uploadedCategoryImage) {
+      try {
+        const response = await fetch('/api/admin/calculator/images', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: uploadedCategoryImage })
+        });
+        if (!response.ok) throw new Error('Не удалось удалить несохранённое изображение');
+      } catch (editError) {
+        setError(editError instanceof Error ? editError.message : String(editError));
+        return;
+      }
+    }
+    setUploadedCategoryImage('');
+    setCategoryForm({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      image: category.image ?? '',
+      sortOrder: String(category.sortOrder),
+      active: category.active
+    });
   };
 
   const deleteCategory = async (category: Category) => {
@@ -561,10 +670,13 @@ export default function CalculatorAdminPage() {
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={() => draggedCategory && void reorderCategory(draggedCategory, category.id)}
                     className="flex flex-wrap items-center justify-between gap-2 rounded border p-3">
-                    <span className="cursor-grab">☰ {category.name} <small className="text-gray-500">/{category.slug} · {data.products.filter((item) => item.categoryId === category.id).length} изделий</small></span>
+                    <div className="flex min-w-0 items-center gap-3">
+                      {category.image && <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-gray-100"><Image src={category.image} alt="" fill sizes="48px" className="object-cover" /></div>}
+                      <span className="cursor-grab">☰ {category.name} <small className="text-gray-500">/{category.slug} · {data.products.filter((item) => item.categoryId === category.id).length} изделий</small></span>
+                    </div>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => setCategoryForm({ id: category.id, name: category.name, slug: category.slug, sortOrder: String(category.sortOrder), active: category.active })} className="text-blue-700">Изменить</button>
-                      <button type="button" onClick={() => void deleteCategory(category)} className="text-red-700">Удалить</button>
+                      <button type="button" disabled={busy} onClick={() => void editCategory(category)} className="text-blue-700">Изменить</button>
+                      <button type="button" disabled={busy} onClick={() => void deleteCategory(category)} className="text-red-700">Удалить</button>
                     </div>
                   </div>
                 ))}
@@ -574,9 +686,21 @@ export default function CalculatorAdminPage() {
               <h2 className="text-xl font-semibold">{categoryForm.id ? 'Изменить категорию' : 'Новая категория'}</h2>
               <input required placeholder="Название" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value, slug: categoryForm.slug || slugify(event.target.value) })} className="w-full rounded border p-2" />
               <input required placeholder="Slug" value={categoryForm.slug} onChange={(event) => setCategoryForm({ ...categoryForm, slug: event.target.value })} className="w-full rounded border p-2" />
+              <label className="block text-sm">
+                Изображение категории
+                <input type="file" accept="image/*" disabled={busy} onChange={(event) => { void uploadCategoryImage(event.target.files?.[0]); event.currentTarget.value = ''; }} className="mt-1 block w-full rounded border p-2" />
+              </label>
+              {categoryForm.image && (
+                <div className="flex items-center gap-3">
+                  <div className="relative h-20 w-20 overflow-hidden rounded border bg-gray-100">
+                    <Image src={categoryForm.image} alt={`Изображение категории ${categoryForm.name}`} fill sizes="80px" className="object-cover" />
+                  </div>
+                  <button type="button" disabled={busy} onClick={() => void removeCategoryImage()} className="text-sm text-red-700">Удалить изображение</button>
+                </div>
+              )}
               <label className="flex gap-2"><input type="checkbox" checked={categoryForm.active} onChange={(event) => setCategoryForm({ ...categoryForm, active: event.target.checked })} />Активна</label>
               <button disabled={busy} className="rounded bg-blue-700 px-4 py-2 text-white">Сохранить</button>
-              {categoryForm.id && <button type="button" onClick={() => setCategoryForm({ id: '', name: '', slug: '', sortOrder: '0', active: true })} className="ml-2">Отмена</button>}
+              {(categoryForm.id || categoryForm.image) && <button type="button" disabled={busy} onClick={() => void resetCategoryForm()} className="ml-2">Отмена</button>}
             </form>
           </div>
         )}
