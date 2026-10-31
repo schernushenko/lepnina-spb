@@ -76,6 +76,20 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
+function uniqueProductSlug(name: string, products: Product[], currentProductId: string): string {
+  const baseSlug = slugify(name);
+  if (!baseSlug) return '';
+
+  const existingSlugs = new Set(
+    products.filter((product) => product.id !== currentProductId).map((product) => product.slug)
+  );
+  if (!existingSlugs.has(baseSlug)) return baseSlug;
+
+  let suffix = 2;
+  while (existingSlugs.has(`${baseSlug}-${suffix}`)) suffix++;
+  return `${baseSlug}-${suffix}`;
+}
+
 function toMilli(value: string): number | null {
   const normalized = value.trim().replace(',', '.');
   if (!/^\d+(\.\d{1,3})?$/.test(normalized)) return null;
@@ -736,7 +750,14 @@ export default function CalculatorAdminPage() {
                 <p className="mt-1 text-xs text-gray-500">Добавьте основную информацию, цену и варианты изделия.</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <input required placeholder="Название" aria-label="Название изделия" value={productForm.name} onChange={(event) => setProductForm({ ...productForm, name: event.target.value, slug: productForm.slug || slugify(event.target.value) })} className="min-w-0 w-full rounded border p-2" />
+                <input required placeholder="Название" aria-label="Название изделия" value={productForm.name} onChange={(event) => {
+                  const name = event.target.value;
+                  setProductForm((current) => ({
+                    ...current,
+                    name,
+                    slug: uniqueProductSlug(name, data.products, current.id)
+                  }));
+                }} className="min-w-0 w-full rounded border p-2" />
                 <input required placeholder="Slug" aria-label="Slug изделия" value={productForm.slug} onChange={(event) => setProductForm({ ...productForm, slug: event.target.value })} className="min-w-0 w-full rounded border p-2" />
               </div>
               <textarea placeholder="Краткое описание" aria-label="Краткое описание" value={productForm.description} onChange={(event) => setProductForm({ ...productForm, description: event.target.value })} className="min-w-0 w-full rounded border p-2" rows={2} />
