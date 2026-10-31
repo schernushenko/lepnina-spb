@@ -13,6 +13,7 @@ import type {
 
 const storageKey = 'lepnina-calculator-cart-v1';
 const emptyCart: CalculatorCart = { lines: [], services: [] };
+const productsPerPage = 12;
 
 function clampQuantity(value: number, minimum: number, step: number, maximum: number): number {
   const clamped = Math.max(minimum, Math.min(maximum, value));
@@ -98,8 +99,10 @@ export default function OrderForm() {
   const [data, setData] = useState<CalculatorData | null>(null);
   const [cart, setCart] = useState<CalculatorCart>(emptyCart);
   const [cartReady, setCartReady] = useState(false);
-  const [categoryId, setCategoryId] = useState('all');
-  const [search, setSearch] = useState('');
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [priceFrom, setPriceFrom] = useState('');
+  const [priceTo, setPriceTo] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -184,12 +187,37 @@ export default function OrderForm() {
     [data]
   );
   const visibleProducts = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase('ru');
-    return activeProducts.filter((product) =>
-      (categoryId === 'all' || product.categoryId === categoryId) &&
-      (!normalizedSearch || `${product.name} ${product.description}`.toLocaleLowerCase('ru').includes(normalizedSearch))
-    );
-  }, [activeProducts, categoryId, search]);
+    const minimumPrice = priceFrom === '' ? null : Math.round(Number(priceFrom) * 100);
+    const maximumPrice = priceTo === '' ? null : Math.round(Number(priceTo) * 100);
+    return activeProducts.filter((product) => {
+      if (selectedCategoryIds.length > 0 && !selectedCategoryIds.includes(product.categoryId ?? '')) return false;
+      if (minimumPrice === null && maximumPrice === null) return true;
+      if (product.priceType === 'request') return false;
+
+      const prices = product.variants.length > 0
+        ? product.variants.map((variant) => variant.priceMinor)
+        : [product.priceMinor];
+      return prices.some((price) =>
+        price !== null &&
+        price !== undefined &&
+        (minimumPrice === null || price >= minimumPrice) &&
+        (maximumPrice === null || price <= maximumPrice)
+      );
+    });
+  }, [activeProducts, priceFrom, priceTo, selectedCategoryIds]);
+  const pageCount = Math.ceil(visibleProducts.length / productsPerPage);
+  const pageProducts = visibleProducts.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
+  const invalidPriceRange = priceFrom !== '' && priceTo !== '' && Number(priceFrom) > Number(priceTo);
+  const filtersAreActive = selectedCategoryIds.length > 0 || priceFrom !== '' || priceTo !== '';
+  const resetFilters = () => {
+    setSelectedCategoryIds([]);
+    setPriceFrom('');
+    setPriceTo('');
+    setCurrentPage(1);
+  };
 
   const calculation = useMemo(() => data
     ? calculateQuote(cart, data.products, data.services, data.discounts, data.settings.minimumOrderMinor)
@@ -379,9 +407,9 @@ export default function OrderForm() {
     const price = variant?.priceMinor ?? product.priceMinor;
     return (
       <article key={product.id} className="overflow-hidden rounded-sm border border-[#b38b5d]/25 bg-[#fcfbf9] shadow-sm">
-        <div className="relative h-52 bg-[#eee9e1]">
+        <div className="relative aspect-square bg-[#eee9e1]">
           {image ? (
-            <Image src={image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
+            <Image src={image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain p-3" />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-[#756a5b]">Изображение не добавлено</div>
           )}
@@ -409,19 +437,6 @@ export default function OrderForm() {
       </article>
     );
   };
-  const productGroups = [
-    ...data.categories.map((category) => ({
-      id: category.id,
-      name: category.name,
-      products: visibleProducts.filter((product) => product.categoryId === category.id)
-    })),
-    {
-      id: 'uncategorized',
-      name: 'Без категории',
-      products: visibleProducts.filter((product) => !product.categoryId)
-    }
-  ].filter((group) => group.products.length > 0);
-
   return (
     <div className="calculator w-full max-w-6xl mx-auto space-y-8">
       <section className="rounded-sm border border-[#b38b5d]/30 bg-[#fcfbf9] p-6 shadow-sm">
@@ -432,44 +447,135 @@ export default function OrderForm() {
           {data.settings.email && <a className="mr-4 underline" href={`mailto:${data.settings.email}`}>{data.settings.email}</a>}
           {data.settings.address}
         </p>
-        <div className="mt-6 grid gap-3 md:grid-cols-[1fr_auto]">
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Найти элемент…"
-            aria-label="Поиск по каталогу"
-            className="rounded border border-[#b38b5d]/40 bg-white px-3 py-2"
-          />
-          <select
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            aria-label="Фильтр по категории"
-            className="rounded border border-[#b38b5d]/40 bg-white px-3 py-2"
-          >
-            <option value="all">Все категории</option>
-            {data.categories.map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
-            ))}
-          </select>
-        </div>
       </section>
 
-      <section aria-label="Каталог изделий">
-        {visibleProducts.length === 0 ? (
-          <p className="rounded bg-white p-6 text-center">По вашему запросу ничего не найдено.</p>
-        ) : (
-          <div className="space-y-8">
-            {productGroups.map((group) => (
-              <section key={group.id} aria-label={group.name}>
-                <h3 className="mb-4 font-cinzel text-2xl text-[#2c2a28]">{group.name}</h3>
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {group.products.map(renderProductCard)}
-                </div>
-              </section>
-            ))}
+      <section aria-label="Каталог изделий" className="grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-sm border border-[#b38b5d]/30 bg-[#fcfbf9] p-5 shadow-sm">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h3 className="font-cinzel text-lg">Фильтры</h3>
+            <button type="button" onClick={resetFilters} disabled={!filtersAreActive}
+              className="text-xs text-[#8b6845] underline underline-offset-2 disabled:cursor-default disabled:text-[#aaa49c]">
+              Сбросить
+            </button>
           </div>
-        )}
+          <fieldset>
+            <legend className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8b6845]">Категория</legend>
+            <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+              {data.categories.map((category) => {
+                const count = activeProducts.filter((product) => product.categoryId === category.id).length;
+                return (
+                  <label key={category.id} className="flex cursor-pointer items-center gap-2 text-sm text-[#4c4943]">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategoryIds.includes(category.id)}
+                      onChange={(event) => {
+                        const checked = event.currentTarget.checked;
+                        setSelectedCategoryIds((current) => checked
+                          ? [...current, category.id]
+                          : current.filter((id) => id !== category.id));
+                        setCurrentPage(1);
+                      }}
+                      className="accent-[#a67b4e]"
+                    />
+                    <span className="min-w-0 flex-1">{category.name}</span>
+                    <span className="text-xs text-[#99948b]">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          <fieldset className="mt-6">
+            <legend className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#8b6845]">Цена, ₽</legend>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs text-[#77736c]">
+                От
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={priceFrom}
+                  onChange={(event) => { setPriceFrom(event.target.value); setCurrentPage(1); }}
+                  placeholder="Любая"
+                  aria-label="Цена от"
+                  className="mt-1 w-full rounded border border-[#b38b5d]/40 bg-white px-2 py-2 text-sm"
+                />
+              </label>
+              <label className="text-xs text-[#77736c]">
+                До
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={priceTo}
+                  onChange={(event) => { setPriceTo(event.target.value); setCurrentPage(1); }}
+                  placeholder="Любая"
+                  aria-label="Цена до"
+                  className="mt-1 w-full rounded border border-[#b38b5d]/40 bg-white px-2 py-2 text-sm"
+                />
+              </label>
+            </div>
+          </fieldset>
+        </aside>
+
+        <div className="min-w-0">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-[#77736c]">
+            <p>
+              {visibleProducts.length > 0
+                ? `Показано ${(currentPage - 1) * productsPerPage + 1}–${Math.min(currentPage * productsPerPage, visibleProducts.length)} из ${visibleProducts.length}`
+                : 'Найдено 0'} товаров
+            </p>
+          </div>
+          {invalidPriceRange ? (
+            <p className="rounded-sm border border-[#b38b5d]/25 bg-[#fcfbf9] p-6 text-center text-[#5a5249]">
+              Минимальная цена не может быть выше максимальной.
+            </p>
+          ) : pageProducts.length === 0 ? (
+            <p className="rounded-sm border border-[#b38b5d]/25 bg-[#fcfbf9] p-6 text-center text-[#5a5249]">
+              По выбранным фильтрам товары не найдены.
+            </p>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {pageProducts.map(renderProductCard)}
+            </div>
+          )}
+          {pageCount > 1 && !invalidPriceRange && (
+            <nav aria-label="Страницы каталога" className="mt-8 flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                aria-label="Предыдущая страница"
+                className="min-w-11 rounded-sm border border-[#d8d1c6] bg-white px-3 py-2 text-sm text-[#4c4943] disabled:cursor-default disabled:opacity-40"
+              >
+                ←
+              </button>
+              {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  aria-current={currentPage === page ? 'page' : undefined}
+                  className={`min-w-11 rounded-sm border px-3 py-2 text-sm ${
+                    currentPage === page
+                      ? 'border-[#292b25] bg-[#292b25] text-white'
+                      : 'border-[#d8d1c6] bg-white text-[#4c4943] hover:bg-[#f4f1eb]'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
+                disabled={currentPage === pageCount}
+                aria-label="Следующая страница"
+                className="min-w-11 rounded-sm border border-[#d8d1c6] bg-white px-3 py-2 text-sm text-[#4c4943] disabled:cursor-default disabled:opacity-40"
+              >
+                →
+              </button>
+            </nav>
+          )}
+        </div>
       </section>
 
       <section id="quote" className="rounded-sm border border-[#b38b5d]/30 bg-[#fcfbf9] p-6 shadow-sm">
